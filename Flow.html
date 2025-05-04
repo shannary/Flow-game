@@ -1,0 +1,2855 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Flow: Quantum Exchange</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="icon.png">
+
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #1a202c;
+            /* Dark background */
+            color: #e2e8f0;
+            /* Light text */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            /* Align items to the top */
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            /* Enable scrolling if content overflows */
+        }
+        
+        .container {
+            background-color: #2d3748;
+            /* Slightly lighter dark background */
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            max-width: 900px;
+            /* Increased max-width */
+            width: 100%;
+            display: grid;
+            /* Adjusted grid areas to include donation */
+            grid-template-areas: "stats market" "actions upgrades" "prestige leaderboard" "namechange leaderboard" "donation donation";
+            /* Donation spans across both columns */
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            /* Adjusted breakpoint */
+            .container {
+                grid-template-areas: "stats" "market" "actions" "upgrades" "prestige" "namechange" "leaderboard" "donation";
+                /* Donation spans full width on mobile */
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .section {
+            background-color: #4a5568;
+            /* Even lighter dark background */
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .stats {
+            grid-area: stats;
+        }
+        
+        .market {
+            grid-area: market;
+        }
+        
+        .actions {
+            grid-area: actions;
+        }
+        
+        .upgrades {
+            grid-area: upgrades;
+        }
+        
+        .prestige {
+            grid-area: prestige;
+        }
+        
+        .leaderboard {
+            grid-area: leaderboard;
+        }
+        
+        .namechange {
+            grid-area: namechange;
+        }
+        /* New Donation Section Styling */
+        
+        .donation {
+            grid-area: donation;
+            text-align: center;
+            /* Center content */
+            margin-top: 20px;
+            /* Add space above */
+        }
+        
+        .donation a.donation-button {
+            /* Styling for the donation link/button */
+            display: inline-block;
+            /* Make it behave like a block for padding/margin */
+            background-color: #667eea;
+            /* Purple color, you can change this */
+            color: white;
+            padding: 12px 25px;
+            /* Increased padding */
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            /* Added transform for press effect */
+            font-size: 1.1em;
+            /* Slightly larger font */
+            text-decoration: none;
+            /* Remove underline from link */
+            margin-top: 10px;
+            /* Space above the button */
+        }
+        
+        .donation a.donation-button:hover {
+            background-color: #5a67d8;
+            /* Darker purple */
+        }
+        
+        .donation a.donation-button:active {
+            /* Added active state for press effect */
+            transform: scale(0.98);
+        }
+        
+        h1 {
+            /* Game Title */
+            color: #a0aec0;
+            font-size: 2.5em;
+            /* Slightly larger title */
+            text-align: center;
+            margin-bottom: 20px;
+            grid-column: 1 / -1;
+            /* Span across all columns */
+        }
+        
+        h2 {
+            color: #a0aec0;
+            /* Gray text */
+            font-size: 1.4em;
+            /* Slightly larger section titles */
+            margin-bottom: 10px;
+            border-bottom: 1px solid #718096;
+            padding-bottom: 5px;
+        }
+        
+        h3 {
+            color: #a0aec0;
+            font-size: 1.1em;
+            /* Slightly larger sub-titles */
+            margin-top: 15px;
+            /* More space above */
+            margin-bottom: 8px;
+            /* More space below */
+        }
+        
+        button {
+            background-color: #4299e1;
+            /* Blue */
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            /* Added transform for press effect */
+            width: 100%;
+            margin-bottom: 8px;
+            font-size: 1em;
+            /* Ensure readable font size */
+        }
+        
+        button:hover {
+            background-color: #3182ce;
+            /* Darker blue */
+        }
+        
+        button:active {
+            /* Added active state for press effect */
+            transform: scale(0.98);
+        }
+        
+        button:disabled {
+            background-color: #718096;
+            /* Gray */
+            cursor: not-allowed;
+            transform: scale(1);
+            /* No press effect when disabled */
+        }
+        
+        .upgrade-item {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #718096;
+        }
+        
+        .upgrade-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .resource-display {
+            margin-bottom: 10px;
+        }
+        
+        .price-indicator {
+            font-weight: bold;
+        }
+        
+        .price-up {
+            color: #48bb78;
+            /* Green */
+        }
+        
+        .price-down {
+            color: #f56565;
+            /* Red */
+        }
+        
+        .price-stable {
+            color: #a0aec0;
+            /* Gray */
+        }
+        
+        .price-low {
+            color: #f6e05e;
+            /* Yellow */
+        }
+        
+        .price-too-low {
+            color: #f6ad55;
+            /* Orange */
+        }
+        
+        .price-inflation {
+            color: #e53e3e;
+            /* Red */
+        }
+        
+        .price-profit {
+            color: #68d391;
+            /* Light Green */
+        }
+        
+        .price-big-profit {
+            color: #48bb78;
+            /* Green */
+        }
+        
+        .price-huge-profit {
+            color: #38a169;
+            /* Dark Green */
+        }
+        
+        .leaderboard-item {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-bottom: 1px solid #718096;
+        }
+        
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+        
+        .leaderboard-item.player {
+            font-weight: bold;
+            color: #4299e1;
+            /* Highlight player */
+            background-color: #4a5568;
+            /* Slightly different background */
+            border-radius: 5px;
+        }
+        /* Simple Modal for Alerts */
+        
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: #4a5568;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 300px;
+            color: #e2e8f0;
+        }
+        
+        .modal-content button {
+            margin-top: 15px;
+            width: auto;
+            padding: 8px 20px;
+        }
+        /* Chart Styling */
+        
+        .chart-container {
+            margin-top: 15px;
+            background-color: #2d3748;
+            /* Match container background */
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100px;
+            /* Fixed height for simplicity */
+            display: block;
+            background-color: #1a202c;
+            /* Darker background for chart area */
+            border-radius: 5px;
+        }
+        /* Action Quantity Controls - Improved */
+        
+        .action-block {
+            /* Container for each action type (Data Unit, Energy Core) */
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #718096;
+        }
+        
+        .action-block:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .action-controls {
+            display: flex;
+            gap: 8px;
+            /* Increased space */
+            margin-bottom: 10px;
+            /* Increased space below */
+            align-items: center;
+            flex-wrap: wrap;
+            /* Allow wrapping on small screens */
+        }
+        
+        .action-controls input[type="number"] {
+            flex-grow: 1;
+            padding: 10px;
+            /* Increased padding */
+            border-radius: 8px;
+            border: none;
+            background-color: #718096;
+            color: #e2e8f0;
+            min-width: 80px;
+            /* Ensure input is not too small */
+            font-size: 1em;
+        }
+        
+        .action-controls input[type="number"]::placeholder {
+            color: #a0aec0;
+        }
+        
+        .action-controls button {
+            width: auto;
+            padding: 10px 15px;
+            /* Increased padding */
+            flex-shrink: 0;
+            margin-bottom: 0;
+            font-size: 1em;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            /* Increased space */
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            /* Allow wrapping on small screens */
+            justify-content: center;
+            /* Center quick buttons */
+        }
+        
+        .action-buttons button {
+            flex-grow: 1;
+            padding: 10px 15px;
+            /* Increased padding */
+            margin-bottom: 0;
+            min-width: 100px;
+            /* Minimum width for quick buttons */
+            font-size: 0.9em;
+            /* Slightly smaller font for quick buttons */
+        }
+        /* Name Change Section */
+        
+        .namechange-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            /* Allow wrapping */
+        }
+        
+        .namechange-controls input[type="text"] {
+            flex-grow: 1;
+            padding: 8px;
+            border-radius: 8px;
+            border: none;
+            background-color: #718096;
+            color: #e2e8f0;
+            min-width: 150px;
+            /* Ensure input is not too small */
+        }
+        
+        .namechange-controls button {
+            width: auto;
+            padding: 8px 15px;
+            margin-bottom: 0;
+            flex-shrink: 0;
+            /* Prevent button from shrinking */
+        }
+        
+        .namechange p {
+            font-size: 0.9em;
+            color: #a0aec0;
+            margin-bottom: 5px;
+        }
+        /* Loading Screen Overlay */
+        
+        .loading-overlay {
+            position: fixed;
+            z-index: 2000;
+            /* Above everything else */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #1a202c;
+            /* Match body background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: #e2e8f0;
+            font-size: 2em;
+            transition: opacity 1s ease-in-out;
+            opacity: 1;
+        }
+        
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+            /* Allow clicks through once hidden */
+        }
+        
+        .loading-overlay h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #4299e1;
+            /* Blue highlight */
+        }
+        
+        .loading-overlay .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #4299e1;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-top: 20px;
+        }
+        
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loadingOverlay" class="loading-overlay">
+        <h1 id="gameTitleOverlay"></h1>
+        <p id="welcomeMessage"></p>
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="container">
+        <h1 id="gameTitle">Market Flow: Quantum Exchange</h1>
+        <div class="section stats">
+            <h2>Statistik</h2>
+            <p>Kredit: <span id="credit">0</span></p>
+            <p>Unit Data: <span id="dataUnit">0</span></p>
+            <p>Inti Energi: <span id="energyCore">0</span></p>
+            <p>Esensi Kuantum: <span id="quantumEssence">0</span></p>
+            <p>Skor Tertinggi (Esensi Kuantum): <span id="highScore">0</span></p>
+            <p class="mt-4">QE per Detik (Pasif): <span id="passiveQEGain">0</span></p>
+            <p>Decay QE per Detik: <span id="qeDecayRate">0</span></p>
+            <p class="mt-2">Decay QE (Pasar Konsumen): <span id="consumerMarketDecayRate">0</span>/detik</p>
+        </div>
+
+        <div class="section market">
+            <h2>Pasar</h2>
+            <div class="resource-display">
+                <p>Harga Unit Data: <span id="dataUnitPrice">0</span> Kredit</p>
+                <p>Tren Unit Data: <span id="dataPriceTrend" class="price-stable">Stabil</span></p>
+                <div class="chart-container">
+                    <canvas id="dataPriceChart"></canvas>
+                </div>
+            </div>
+            <div class="resource-display" id="energyCoreMarket" style="display: none;">
+                <p>Harga Inti Energi: <span id="energyCorePrice">0</span> Kredit</p>
+                <p>Tren Inti Energi: <span id="energyPriceTrend" class="price-stable">Stabil</span></p>
+                <div class="chart-container">
+                    <canvas id="energyCorePriceChart"></canvas>
+                </div>
+            </div>
+            <div class="resource-display mt-4">
+                <p>Indeks Pasar Konsumen: <span id="consumerMarketIndex">0</span></p>
+                <p>Tren Pasar Konsumen: <span id="consumerMarketTrend" class="price-stable">Stabil</span></p>
+                <div class="chart-container">
+                    <canvas id="consumerMarketChart"></canvas>
+                </div>
+            </div>
+            <div id="aiPrediction" class="mt-4 text-sm italic text-gray-400">
+                AI Assistant: Mengamati pasar...
+            </div>
+        </div>
+
+        <div class="section actions">
+            <h2>Aksi</h2>
+
+            <div class="action-block">
+                <h3>Unit Data</h3>
+                <div class="action-controls">
+                    <input type="number" id="dataUnitQuantity" value="1" min="1" placeholder="Jumlah">
+                    <button id="buyDataUnit">Beli</button>
+                    <button id="sellDataUnit">Jual</button>
+                </div>
+                <div class="action-buttons">
+                    <button class="buy-data-quick" data-quantity="1">Beli 1</button>
+                    <button class="buy-data-quick" data-quantity="10">Beli 10</button>
+                    <button class="buy-data-quick" data-quantity="25">Beli 25</button>
+                    <button class="buy-data-quick" data-quantity="100">Beli 100</button>
+                </div>
+                <div class="action-buttons">
+                    <button class="sell-data-quick" data-quantity="1">Jual 1</button>
+                    <button class="sell-data-quick" data-quantity="10">Jual 10</button>
+                    <button class="sell-data-quick" data-quantity="25">Jual 25</button>
+                    <button class="sell-data-quick" data-quantity="100">Jual 100</button>
+                </div>
+            </div>
+
+
+            <div class="action-block" id="energyCoreActionsBlock" style="display: none;">
+                <h3 id="energyCoreActionsTitle">Inti Energi</h3>
+                <div class="action-controls" id="energyCoreActionControls">
+                    <input type="number" id="energyCoreQuantity" value="1" min="1" placeholder="Jumlah">
+                    <button id="buyEnergyCore">Beli</button>
+                    <button id="sellEnergyCore">Jual</button>
+                </div>
+                <div class="action-buttons" id="energyCoreBuyQuick">
+                    <button class="buy-energy-quick" data-quantity="1">Beli 1</button>
+                    <button class="buy-energy-quick" data-quantity="5">Beli 5</button>
+                    <button class="buy-energy-quick" data-quantity="10">Beli 10</button>
+                    <button class="buy-energy-quick" data-quantity="25">Beli 25</button>
+                </div>
+                <div class="action-buttons" id="energyCoreSellQuick">
+                    <button class="sell-energy-quick" data-quantity="1">Jual 1</button>
+                    <button class="sell-energy-quick" data-quantity="5">Jual 5</button>
+                    <button class="sell-energy-quick" data-quantity="10">Jual 10</button>
+                    <button class="sell-energy-quick" data-quantity="25">Jual 25</button>
+                </div>
+            </div>
+
+            <div class="action-block">
+                <h3>Aksi Kuantum</h3>
+                <div class="action-controls">
+                    <button id="performQuantumAnalysis">Analisis Kuantum</button>
+                    <p>Biaya: <span id="quantumAnalysisCost">1000</span> Kredit</p>
+                </div>
+                <p class="text-sm italic text-gray-400">Lakukan analisis pasar kuantum untuk peluang QE.</p>
+            </div>
+
+
+        </div>
+
+        <div class="section upgrades">
+            <h2>Upgrade</h2>
+            <div class="upgrade-item">
+                <p>Produksi Otomatis Unit Data</p>
+                <p>Level: <span id="autoProdLevel">0</span> | Kecepatan: <span id="autoProdSpeed">0</span>/detik</p>
+                <p>Biaya: <span id="autoProdCost">100</span> Kredit</p>
+                <button id="upgradeAutoProd">Upgrade</button>
+            </div>
+            <div class="upgrade-item">
+                <p>Bot Perdagangan Otomatis</p>
+                <p>Level: <span id="autoTradeLevel">0</span> | Efisiensi: <span id="autoTradeEfficiency">0</span>%</p>
+                <p>Biaya: <span id="autoTradeCost">500</span> Kredit</p>
+                <button id="upgradeAutoTrade">Upgrade</button>
+            </div>
+            <div class="upgrade-item" id="unlockEnergyCoreUpgrade">
+                <p>Buka Perdagangan Inti Energi</p>
+                <p>Biaya: <span id="unlockEnergyCoreCost">5000</span> Kredit</p>
+                <button id="upgradeUnlockEnergyCore">Buka</button>
+            </div>
+            <div class="upgrade-item" id="autoProdEnergyCoreUpgrade" style="display: none;">
+                <p>Produksi Otomatis Inti Energi</p>
+                <p>Level: <span id="autoProdEnergyLevel">0</span> | Kecepatan: <span id="autoProdEnergySpeed">0</span>/detik</p>
+                <p>Biaya: <span id="autoProdEnergyCost">2000</span> Kredit</p>
+                <button id="upgradeAutoProdEnergy">Upgrade</button>
+            </div>
+            <div class="upgrade-item">
+                <p>Penguat Stabilitas Kuantum</p>
+                <p>Level: <span id="qeStabilityLevel">0</span> | Pengurangan Decay Rendah Kredit: <span id="qeStabilityReduction">0</span>%</p>
+                <p>Biaya: <span id="qeStabilityCost">500</span> Kredit</p>
+                <button id="upgradeQEStability">Upgrade</button>
+            </div>
+
+            <div class="mt-6">
+                <h3>Upgrade Sementara QE</h3>
+                <div class="upgrade-item">
+                    <p>Stabilisator Kuantum Sementara</p>
+                    <p>Mengurangi anjlok QE saat Kredit rendah.</p>
+                    <p>Level: <span id="tempQESLevel">0</span> / 5 | Durasi: <span id="tempQESDuration">0</span>s</p>
+                    <p>Biaya: <span id="tempQESCost">1000</span> Kredit</p>
+                    <button id="buyTempQES">Beli</button>
+                </div>
+                <div class="upgrade-item">
+                    <p>Pemanen Esensi Sementara</p>
+                    <p>Meningkatkan gain pasif QE.</p>
+                    <p>Level: <span id="tempQEHLevel">0</span> / 5 | Durasi: <span id="tempQEHDuration">0</span>s</p>
+                    <p>Biaya: <span id="tempQEHCost">1500</span> Kredit</p>
+                    <button id="buyTempQEH">Beli</button>
+                </div>
+                <div class="upgrade-item">
+                    <p>Wawasan Pasar Kuantum Sementara</p>
+                    <p>Meningkatkan peluang dan jumlah gain QE ekstrem.</p>
+                    <p>Level: <span id="tempQEMLevel">0</span> / 3 | Durasi: <span id="tempQEMDuration">0</span>s</p>
+                    <p>Biaya: <span id="tempQEMCost">3000</span> Kredit</p>
+                    <button id="buyTempQEM">Beli</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="section prestige">
+            <h2>Prestise</h2>
+            <p>Dapatkan Esensi Kuantum saat Prestise:</p>
+            <p><span id="prestigeGain">0</span> Esensi Kuantum</p>
+            <button id="prestigeButton" disabled>Lakukan Prestise (Perlu 10000 Kredit)</button>
+            <div id="prestigeUpgrades" class="mt-4">
+                <h3>Upgrade Permanen (Esensi Kuantum)</h3>
+                <div class="upgrade-item">
+                    <p>Bonus Produksi Awal Unit Data</p>
+                    <p>Level: <span id="permProdLevel">0</span> | Bonus: +<span id="permProdBonus">0</span>/detik</p>
+                    <p>Biaya: <span id="permProdCost">1</span> Esensi Kuantum</p>
+                    <button id="upgradePermProd">Upgrade</button>
+                </div>
+                <div class="upgrade-item" id="permEnergyProdUpgrade" style="display: none;">
+                    <p>Bonus Produksi Awal Inti Energi</p>
+                    <p>Level: <span id="permEnergyProdLevel">0</span> | Bonus: +<span id="permEnergyProdBonus">0</span>/detik</p>
+                    <p>Biaya: <span id="permEnergyProdCost">5</span> Esensi Kuantum</p>
+                    <button id="upgradePermEnergyProd">Upgrade</button>
+                </div>
+                <div class="upgrade-item">
+                    <p>Efisiensi Bot Permanen</p>
+                    <p>Level: <span id="permTradeEffLevel">0</span> | Bonus: +<span id="permTradeEffBonus">0</span>%</p>
+                    <p>Biaya: <span id="permTradeEffCost">3</span> Esensi Kuantum</p>
+                    <button id="upgradePermTradeEff">Upgrade</button>
+                </div>
+                <div class="upgrade-item">
+                    <p>Pengurangan Biaya Upgrade Permanen</p>
+                    <p>Level: <span id="permCostReductLevel">0</span> | Diskon: <span id="permCostReductBonus">0</span>%</p>
+                    <p>Biaya: <span id="permCostReductCost">10</span> Esensi Kuantum</p>
+                    <button id="upgradePermCostReduct">Upgrade</button>
+                </div>
+                <div class="upgrade-item">
+                    <p>Peningkatan Gain QE</p>
+                    <p>Level: <span id="permQEGainLevel">0</span> | Bonus: +<span id="permQEGainBonus">0</span>%</p>
+                    <p>Biaya: <span id="permQEGainCost">5</span> Esensi Kuantum</p>
+                    <button id="upgradePermQEGain">Upgrade</button>
+                </div>
+                <div class="upgrade-item">
+                    <p>Pengurangan Decay QE</p>
+                    <p>Level: <span id="permQEDecayReductLevel">0</span> | Diskon: <span id="permQEDecayReductBonus">0</span>%</p>
+                    <p>Biaya: <span id="permQEDecayReductCost">8</span> Esensi Kuantum</p>
+                    <button id="upgradePermQEDecayReduct">Upgrade</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="section namechange">
+            <h2>Ganti Nama</h2>
+            <div class="namechange-controls">
+                <input type="text" id="playerNameInput" placeholder="Masukkan Nama Anda">
+                <button id="changeNameButton">Ganti Nama</button>
+            </div>
+            <p>Kesempatan Gratis Tersisa: <span id="freeNameChanges">1</span></p>
+            <p>Biaya Ganti Nama Berikutnya: <span id="nameChangeCost">10.000</span> Kredit</p>
+        </div>
+
+
+        <div class="section leaderboard">
+            <h2>Papan Peringkat</h2>
+            <div id="localLeaderboard">
+            </div>
+        </div>
+
+        <div class="section donation">
+            <h2>Dukung Kami</h2>
+            <p>Jika Anda menikmati permainan ini dan ingin berkontribusi, Anda bisa berdonasi melalui DANA.</p>
+            <a href="#" id="danaDonationLink" class="donation-button" target="_blank">Donasi via DANA</a>
+        </div>
+    </div>
+
+    <div id="myModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <p id="modalMessage"></p>
+            <button id="closeModal">OK</button>
+        </div>
+    </div>
+
+
+    <script>
+        // Game State
+        let gameState = {
+            playerName: "Anda", // Default player name
+            freeNameChanges: 1,
+            nameChangeCost: 10000,
+
+            credit: 100, // Starting credit
+            dataUnit: 0,
+            dataUnitPrice: 10, // Initial price
+            lastDataUnitPrice: 10, // Store last price for trend
+            dataPriceHistory: [], // History for chart
+
+            energyCore: 0,
+            energyCorePrice: 50, // Initial price for Energy Core
+            lastEnergyCorePrice: 50, // Store last price for trend
+            energyCoreUnlocked: false,
+            energyCorePriceHistory: [], // History for chart
+
+            // New Consumer Market State - ADJUSTED SCALING
+            consumerMarketIndex: 2.5, // Initial Consumer Market Index (scaled down)
+            lastConsumerMarketIndex: 2.5, // Store last index for trend
+            consumerMarketHistory: [], // History for chart
+
+
+            quantumEssence: 0,
+            highScore: 0, // Local high score based on total QE earned
+
+            // AI Bots for Leaderboard
+            aiBots: [], // Array to store AI bot data
+
+            // Upgrades (Data Unit)
+            autoProdLevel: 0,
+            autoProdCost: 100,
+            autoProdSpeed: 0,
+
+            // Upgrades (Energy Core)
+            autoProdEnergyLevel: 0,
+            autoProdEnergyCost: 2000,
+            autoProdEnergySpeed: 0,
+
+            // Auto Trade Bot
+            autoTradeLevel: 0,
+            autoTradeCost: 500,
+            autoTradeEfficiency: 0, // Percentage chance/effectiveness
+
+            // Unlock Upgrades
+            unlockEnergyCoreCost: 5000,
+
+            // Credit-Based Upgrade for QE Stability (Permanent effect)
+            qeStabilityLevel: 0,
+            qeStabilityCost: 500,
+            qeStabilityReduction: 0, // Percentage reduction to low credit decay multiplier
+
+            // New Temporary QE Upgrades (Credit based, timed)
+            tempQESLevel: 0, // Quantum Stabilizer
+            tempQESCost: 1000,
+            tempQESDuration: 0, // Remaining duration in seconds
+            tempQESMaxLevel: 5,
+            tempQESBaseDuration: 30, // Base duration in seconds
+            tempQESReductionPerLevel: 10, // % Reduction to low credit decay multiplier per level
+
+            tempQEHLevel: 0, // Essence Harvester
+            tempQEHCost: 1500,
+            tempQEHDuration: 0, // Remaining duration in seconds
+            tempQEHMaxLevel: 5,
+            tempQEHBaseDuration: 45, // Base duration in seconds
+            tempQEHBonusPerLevel: 10, // % Bonus to passive QE gain per level
+
+            tempQEMLevel: 0, // Market Insight (QE)
+            tempQEMCost: 3000,
+            tempQEMDuration: 0, // Remaining duration in seconds
+            tempQEMMaxLevel: 3,
+            tempQEMBaseDuration: 60, // Base duration in seconds
+            tempQEMGainMultiplierBonus: 0.1, // Added to extremeGainMultiplier per level
+
+
+            // Permanent Upgrades (Prestige - QE based)
+            permProdLevel: 0,
+            permProdCost: 1,
+            permProdBonus: 0, // Added to initial autoProdSpeed
+
+            permEnergyProdLevel: 0,
+            permEnergyProdCost: 5,
+            permEnergyProdBonus: 0, // Added to initial autoProdEnergySpeed
+
+            permTradeEffLevel: 0,
+            permTradeEffCost: 3,
+            permTradeEffBonus: 0, // Added to autoTradeEfficiency
+
+            permCostReductLevel: 0,
+            permCostReductCost: 10,
+            permCostReductBonus: 0, // Percentage reduction on upgrade costs
+
+            // Permanent Upgrades for QE (bought with QE)
+            permQEGainLevel: 0,
+            // Increased base cost significantly (38x original base of 5)
+            permQEGainCost: 5 * 38,
+            permQEGainBonus: 0, // Percentage bonus to QE gain (affects all sources)
+            permQEGainCostMultiplier: 1.4, // Slightly increased cost multiplier per level
+
+            permQEDecayReductLevel: 0,
+            // Increased base cost significantly (30x original base of 8)
+            permQEDecayReductCost: 8 * 30,
+            permQEDecayReductBonus: 0, // Percentage reduction to QE decay (base decay)
+            permQEDecayReductCostMultiplier: 1.5, // Slightly increased cost multiplier per level
+
+            // New QE Mechanics Settings - ADJUSTED FOR MORE DECAY
+            passiveQEGainRate: 0.000005, // Made even smaller
+            qeDecayRateBase: 0.001, // Increased significantly
+            creditLowThreshold: 1500, // Increased threshold slightly
+            lowCreditDecayMultiplier: 50, // Increased significantly
+
+            // Extreme Gain/Loss Settings - KEPT SAME AS PREVIOUS ADJUSTMENT
+            extremeGainThreshold: 1.0,
+            extremeGainMultiplier: 0.1,
+            extremeLossThreshold: 0.5,
+            extremeLossMultiplier: 0.4,
+            extremeLossCap: 0.8,
+
+            // Quantum Analysis Settings - KEPT SAME AS PREVIOUS ADJUSTMENT
+            quantumAnalysisCost: 5000,
+            quantumAnalysisQEGainMin: 0.005,
+            quantumAnalysisQEGainMax: 0.05,
+            quantumAnalysisSuccessChance: 0.03,
+
+            // Consumer Market Decay Settings - ADJUSTED FOR MORE DECAY AND NEW INDEX RANGE
+            consumerMarketDecayBaseRate: 0.0005, // Increased significantly
+            consumerMarketLowThreshold: 1.5, // Adjusted threshold to new range
+            consumerMarketDecayMultiplier: 8, // Increased multiplier
+
+            // Game settings
+            // Increased prestige requirement significantly (10x original) - KEPT SAME
+            prestigeRequirement: 10000 * 10,
+            marketVolatilityData: 0.05,
+            marketVolatilityEnergy: 0.1,
+            aiInfluenceFactor: 0.02,
+            gameTick: 100,
+            maxPriceHistory: 50,
+            aiUpdateInterval: 5000,
+            consumerMarketUpdateInterval: 3000,
+
+            // Donation Link (Stored as a string to be set dynamically)
+            danaDonationLink: "https://link.dana.id/minta?full_url=https://qr.dana.id/v1/281012092025050431246770"
+        };
+
+        // List of AI Bot Names
+        const aiBotNames = [
+            "Primera Group", "Aurora Corp", "VerdaTech", "Skyline Global", "Nexa Solutions",
+            "Zenith Enterprises", "OmniTrade", "Nova Dynamics", "Quantum Systems", "BrightWay Ventures",
+            "Summit Industries", "Evolve Technologies", "FusionWorks", "Vertex Consulting", "TerraNova Group",
+            "Horizon Solutions", "Atlas Corp", "Stellar Holdings", "Infinity Partners", "Titan Innovations",
+            "Pioneer Group", "OmegaTech", "BlueWave Enterprises", "Momentum Global", "Legacy Solutions",
+            "Everest Technologies", "CoreVision", "Vortex Industries", "Stratos Group", "Synergy Partners"
+        ];
+
+        const gameTitle = "Market Flow: Quantum Exchange";
+
+
+        // --- UI Elements ---
+        const gameTitleEl = document.getElementById('gameTitle');
+        const gameTitleOverlayEl = document.getElementById('gameTitleOverlay');
+        const welcomeMessageEl = document.getElementById('welcomeMessage');
+        const loadingOverlayEl = document.getElementById('loadingOverlay');
+
+
+        const creditEl = document.getElementById('credit');
+        const dataUnitEl = document.getElementById('dataUnit');
+        const energyCoreEl = document.getElementById('energyCore');
+        const quantumEssenceEl = document.getElementById('quantumEssence');
+        const highScoreEl = document.getElementById('highScore');
+        const passiveQEGainEl = document.getElementById('passiveQEGain');
+        const qeDecayRateEl = document.getElementById('qeDecayRate'); // QE Decay Rate element
+        const consumerMarketDecayRateEl = document.getElementById('consumerMarketDecayRate'); // Consumer Market Decay Rate element
+
+
+        const dataUnitPriceEl = document.getElementById('dataUnitPrice');
+        const dataPriceTrendEl = document.getElementById('dataPriceTrend');
+        const energyCorePriceEl = document.getElementById('energyCorePrice');
+        const energyPriceTrendEl = document.getElementById('energyPriceTrend');
+        const energyCoreMarketEl = document.getElementById('energyCoreMarket');
+
+        const dataPriceChartCanvas = document.getElementById('dataPriceChart');
+        const dataPriceChartCtx = dataPriceChartCanvas.getContext('2d');
+        const energyCorePriceChartCanvas = document.getElementById('energyCorePriceChart');
+        const energyCorePriceChartCtx = energyCorePriceChartCanvas.getContext('2d');
+
+        // New Consumer Market Chart Elements
+        const consumerMarketIndexEl = document.getElementById('consumerMarketIndex');
+        const consumerMarketTrendEl = document.getElementById('consumerMarketTrend');
+        const consumerMarketChartCanvas = document.getElementById('consumerMarketChart');
+        const consumerMarketChartCtx = consumerMarketChartCanvas.getContext('2d');
+
+
+        const aiPredictionEl = document.getElementById('aiPrediction');
+
+        // Data Unit Action Elements
+        const dataUnitQuantityInput = document.getElementById('dataUnitQuantity');
+        const buyDataUnitBtn = document.getElementById('buyDataUnit');
+        const sellDataUnitBtn = document.getElementById('sellDataUnit');
+        const buyDataQuickBtns = document.querySelectorAll('.buy-data-quick');
+        const sellDataQuickBtns = document.querySelectorAll('.sell-data-quick');
+
+
+        // Energy Core Action Elements
+        const energyCoreActionsBlockEl = document.getElementById('energyCoreActionsBlock'); // Container block
+        const energyCoreActionsTitleEl = document.getElementById('energyCoreActionsTitle');
+        const energyCoreActionControlsEl = document.getElementById('energyCoreActionControls');
+        const energyCoreQuantityInput = document.getElementById('energyCoreQuantity');
+        const buyEnergyCoreBtn = document.getElementById('buyEnergyCore');
+        const sellEnergyCoreBtn = document.getElementById('sellEnergyCore');
+        const buyEnergyQuickBtns = document.querySelectorAll('.buy-energy-quick');
+        const sellEnergyQuickBtns = document.querySelectorAll('.sell-energy-quick');
+
+        // New QE Action Elements
+        const performQuantumAnalysisBtn = document.getElementById('performQuantumAnalysis');
+        const quantumAnalysisCostEl = document.getElementById('quantumAnalysisCost');
+
+
+        const autoProdLevelEl = document.getElementById('autoProdLevel');
+        const autoProdSpeedEl = document.getElementById('autoProdSpeed');
+        const autoProdCostEl = document.getElementById('autoProdCost');
+        const upgradeAutoProdBtn = document.getElementById('upgradeAutoProd');
+
+        const autoProdEnergyLevelEl = document.getElementById('autoProdEnergyLevel');
+        const autoProdEnergySpeedEl = document.getElementById('autoProdEnergySpeed');
+        const autoProdEnergyCostEl = document.getElementById('autoProdEnergyCost');
+        const upgradeAutoProdEnergyBtn = document.getElementById('upgradeAutoProdEnergy');
+        const autoProdEnergyCoreUpgradeEl = document.getElementById('autoProdEnergyCoreUpgrade');
+
+
+        const autoTradeLevelEl = document.getElementById('autoTradeLevel');
+        const autoTradeEfficiencyEl = document.getElementById('autoTradeEfficiency');
+        const autoTradeCostEl = document.getElementById('autoTradeCost');
+        const upgradeAutoTradeBtn = document.getElementById('upgradeAutoTrade');
+
+        const unlockEnergyCoreUpgradeEl = document.getElementById('unlockEnergyCoreUpgrade');
+        const unlockEnergyCoreCostEl = document.getElementById('unlockEnergyCoreCost');
+        const upgradeUnlockEnergyCoreBtn = document.getElementById('upgradeUnlockEnergyCore');
+
+        // Credit-Based Upgrade for QE Stability
+        const qeStabilityLevelEl = document.getElementById('qeStabilityLevel');
+        const qeStabilityReductionEl = document.getElementById('qeStabilityReduction');
+        const qeStabilityCostEl = document.getElementById('qeStabilityCost');
+        const upgradeQEStabilityBtn = document.getElementById('upgradeQEStability');
+
+        // New Temporary QE Upgrade Elements
+        const tempQESLevelEl = document.getElementById('tempQESLevel');
+        const tempQESDurationEl = document.getElementById('tempQESDuration');
+        const tempQESCostEl = document.getElementById('tempQESCost');
+        const buyTempQESBtn = document.getElementById('buyTempQES');
+
+        const tempQEHLevelEl = document.getElementById('tempQEHLevel');
+        const tempQEHDurationEl = document.getElementById('tempQEHDuration');
+        const tempQEHCostEl = document.getElementById('tempQEHCost');
+        const buyTempQEHBtn = document.getElementById('buyTempQEH');
+
+        const tempQEMLevelEl = document.getElementById('tempQEMLevel');
+        const tempQEMDurationEl = document.getElementById('tempQEMDuration');
+        const tempQEMCostEl = document.getElementById('tempQEMCost');
+        const buyTempQEMBtn = document.getElementById('buyTempQEM');
+
+
+        const prestigeGainEl = document.getElementById('prestigeGain');
+        const prestigeButton = document.getElementById('prestigeButton');
+
+        const permProdLevelEl = document.getElementById('permProdLevel');
+        const permProdBonusEl = document.getElementById('permProdBonus');
+        const permProdCostEl = document.getElementById('permProdCost');
+        const upgradePermProdBtn = document.getElementById('upgradePermProd');
+
+        const permEnergyProdLevelEl = document.getElementById('permEnergyProdLevel');
+        const permEnergyProdBonusEl = document.getElementById('permEnergyProdBonus');
+        const permEnergyProdCostEl = document.getElementById('permEnergyProdCost');
+        const upgradePermEnergyProdBtn = document.getElementById('upgradePermEnergyProd');
+        const permEnergyProdUpgradeEl = document.getElementById('permEnergyProdUpgrade');
+
+        const permTradeEffLevelEl = document.getElementById('permTradeEffLevel');
+        const permTradeEffBonusEl = document.getElementById('permTradeEffBonus');
+        const permTradeEffCostEl = document.getElementById('permTradeEffCost');
+        const upgradePermTradeEffBtn = document.getElementById('upgradePermTradeEff');
+
+        const permCostReductLevelEl = document.getElementById('permCostReductLevel');
+        const permCostReductBonusEl = document.getElementById('permCostReductBonus');
+        const permCostReductCostEl = document.getElementById('permCostReductCost');
+        const upgradePermCostReductBtn = document.getElementById('upgradePermCostReduct');
+
+        // Permanent Upgrades for QE (bought with QE)
+        const permQEGainLevelEl = document.getElementById('permQEGainLevel');
+        const permQEGainBonusEl = document.getElementById('permQEGainBonus');
+        const permQEGainCostEl = document.getElementById('permQEGainCost');
+        const upgradePermQEGainBtn = document.getElementById('upgradePermQEGain');
+
+        const permQEDecayReductLevelEl = document.getElementById('permQEDecayReductLevel');
+        const permQEDecayReductBonusEl = document.getElementById('permQEDecayReductBonus');
+        const permQEDecayReductCostEl = document.getElementById('permQEDecayReductCost');
+        const upgradePermQEDecayReductBtn = document.getElementById('upgradePermQEDecayReduct');
+
+
+        const localLeaderboardEl = document.getElementById('localLeaderboard');
+
+        // Name Change Elements
+        const playerNameInput = document.getElementById('playerNameInput');
+        const changeNameButton = document.getElementById('changeNameButton');
+        const freeNameChangesEl = document.getElementById('freeNameChanges');
+        const nameChangeCostEl = document.getElementById('nameChangeCost');
+
+        // Donation Link Element
+        const danaDonationLinkEl = document.getElementById('danaDonationLink');
+
+
+        // Modal Elements
+        const modal = document.getElementById('myModal');
+        const modalMessage = document.getElementById('modalMessage');
+        const closeModalBtn = document.getElementById('closeModal');
+
+        // --- Core Game Functions ---
+
+        // Show simple modal message
+        function showModal(message) {
+            modalMessage.textContent = message;
+            modal.style.display = 'flex';
+        }
+
+        // Hide modal
+        closeModalBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // Update UI based on gameState
+        function updateUI() {
+            try {
+                creditEl.textContent = formatNumber(gameState.credit);
+                dataUnitEl.textContent = formatNumber(gameState.dataUnit);
+                energyCoreEl.textContent = formatNumber(gameState.energyCore);
+                quantumEssenceEl.textContent = formatNumber(gameState.quantumEssence.toFixed(2)); // Show QE with 2 decimals
+                highScoreEl.textContent = formatNumber(gameState.highScore.toFixed(2)); // Show High Score with 2 decimals
+                passiveQEGainEl.textContent = formatNumber(calculatePassiveQEGain().toFixed(4)); // Display passive QE gain rate
+                qeDecayRateEl.textContent = formatNumber(calculateActualQEDecayRate().toFixed(4)); // Display actual QE decay rate
+                consumerMarketDecayRateEl.textContent = formatNumber(calculateConsumerMarketDecayRate().toFixed(4)); // Display consumer market decay rate
+
+
+                dataUnitPriceEl.textContent = formatNumber(gameState.dataUnitPrice.toFixed(2));
+                energyCorePriceEl.textContent = formatNumber(gameState.energyCorePrice.toFixed(2));
+                consumerMarketIndexEl.textContent = formatNumber(gameState.consumerMarketIndex.toFixed(1)); // Display Consumer Market Index
+
+
+                // Update price trend indicator for Data Unit
+                updatePriceTrendIndicator(gameState.dataUnitPrice, gameState.lastDataUnitPrice, dataPriceTrendEl);
+                gameState.lastDataUnitPrice = gameState.dataUnitPrice; // Store last price for trend
+
+                // Update price trend indicator for Energy Core (if unlocked)
+                if (gameState.energyCoreUnlocked) {
+                    updatePriceTrendIndicator(gameState.energyCorePrice, gameState.lastEnergyCorePrice, energyPriceTrendEl);
+                    gameState.lastEnergyCorePrice = gameState.energyCorePrice; // Store last price for trend
+                }
+
+                // Update trend indicator for Consumer Market
+                updatePriceTrendIndicator(gameState.consumerMarketIndex, gameState.lastConsumerMarketIndex, consumerMarketTrendEl);
+                gameState.lastConsumerMarketIndex = gameState.consumerMarketIndex; // Store last index for trend
+
+
+                // Update upgrade UI (Data Unit Auto Prod)
+                autoProdLevelEl.textContent = gameState.autoProdLevel;
+                autoProdSpeedEl.textContent = formatNumber(gameState.autoProdSpeed.toFixed(2));
+                autoProdCostEl.textContent = formatNumber(calculateUpgradeCost(gameState.autoProdCost));
+                upgradeAutoProdBtn.disabled = gameState.credit < calculateUpgradeCost(gameState.autoProdCost);
+
+                // Update upgrade UI (Auto Trade Bot)
+                autoTradeLevelEl.textContent = gameState.autoTradeLevel;
+                autoTradeEfficiencyEl.textContent = (gameState.autoTradeEfficiency + gameState.permTradeEffBonus).toFixed(0); // Display total efficiency
+                autoTradeCostEl.textContent = formatNumber(calculateUpgradeCost(gameState.autoTradeCost));
+                upgradeAutoTradeBtn.disabled = gameState.credit < calculateUpgradeCost(gameState.autoTradeCost);
+
+                // Update unlock Energy Core upgrade UI
+                if (gameState.energyCoreUnlocked) {
+                    unlockEnergyCoreUpgradeEl.style.display = 'none';
+                    energyCoreMarketEl.style.display = 'block';
+                    energyCoreActionsBlockEl.style.display = 'block'; // Show the whole block
+                    energyCoreActionsTitleEl.style.display = 'block';
+                    energyCoreActionControlsEl.style.display = 'flex'; // Show flex container
+                    buyEnergyCoreBtn.style.display = 'block'; // Buttons inside flex
+                    sellEnergyCoreBtn.style.display = 'block'; // Buttons inside flex
+                    buyEnergyQuickBtns.forEach(btn => btn.parentElement.style.display = 'flex'); // Show quick buy buttons container
+                    sellEnergyQuickBtns.forEach(btn => btn.parentElement.style.display = 'flex'); // Show quick sell buttons container
+                    autoProdEnergyCoreUpgradeEl.style.display = 'block';
+                    permEnergyProdUpgradeEl.style.display = 'block'; // Show permanent upgrade for Energy Core
+                } else {
+                    unlockEnergyCoreCostEl.textContent = formatNumber(calculateUpgradeCost(gameState.unlockEnergyCoreCost));
+                    upgradeUnlockEnergyCoreBtn.disabled = gameState.credit < calculateUpgradeCost(gameState.unlockEnergyCoreCost);
+                    // Hide Energy Core related UI if not unlocked
+                    energyCoreMarketEl.style.display = 'none';
+                    energyCoreActionsBlockEl.style.display = 'none'; // Hide the whole block
+                    energyCoreActionsTitleEl.style.display = 'none';
+                    energyCoreActionControlsEl.style.display = 'none';
+                    buyEnergyQuickBtns.forEach(btn => btn.parentElement.style.display = 'none');
+                    sellEnergyQuickBtns.forEach(btn => btn.parentElement.style.display = 'none');
+                    autoProdEnergyCoreUpgradeEl.style.display = 'none';
+                    permEnergyProdUpgradeEl.style.display = 'none';
+                }
+
+                // Update upgrade UI (Energy Core Auto Prod)
+                autoProdEnergyLevelEl.textContent = gameState.autoProdEnergyLevel;
+                autoProdEnergySpeedEl.textContent = formatNumber(gameState.autoProdEnergySpeed.toFixed(2));
+                autoProdEnergyCostEl.textContent = formatNumber(calculateUpgradeCost(gameState.autoProdEnergyCost));
+                upgradeAutoProdEnergyBtn.disabled = gameState.credit < calculateUpgradeCost(gameState.autoProdEnergyCost);
+
+                // Update upgrade UI (QE Stability - Credit based)
+                qeStabilityLevelEl.textContent = gameState.qeStabilityLevel;
+                qeStabilityReductionEl.textContent = formatNumber(gameState.qeStabilityReduction.toFixed(1));
+                qeStabilityCostEl.textContent = formatNumber(calculateUpgradeCost(gameState.qeStabilityCost));
+                upgradeQEStabilityBtn.disabled = gameState.credit < calculateUpgradeCost(gameState.qeStabilityCost);
+
+                // Update Temporary QE Upgrade UI
+                tempQESLevelEl.textContent = gameState.tempQESLevel;
+                tempQESDurationEl.textContent = gameState.tempQESDuration.toFixed(0);
+                tempQESCostEl.textContent = formatNumber(gameState.tempQESCost);
+                buyTempQESBtn.disabled = gameState.credit < gameState.tempQESCost || gameState.tempQESLevel >= gameState.tempQESMaxLevel;
+
+                tempQEHLevelEl.textContent = gameState.tempQEHLevel;
+                tempQEHDurationEl.textContent = gameState.tempQEHDuration.toFixed(0);
+                tempQEHCostEl.textContent = formatNumber(gameState.tempQEHCost);
+                buyTempQEHBtn.disabled = gameState.credit < gameState.tempQEHCost || gameState.tempQEHLevel >= gameState.tempQEHMaxLevel;
+
+                tempQEMLevelEl.textContent = gameState.tempQEMLevel;
+                tempQEMDurationEl.textContent = gameState.tempQEMDuration.toFixed(0);
+                tempQEMCostEl.textContent = formatNumber(gameState.tempQEMCost);
+                buyTempQEMBtn.disabled = gameState.credit < gameState.tempQEMCost || gameState.tempQEMLevel >= gameState.tempQEMMaxLevel;
+
+
+                // Update prestige UI
+                const potentialPrestigeGain = Math.floor(gameState.credit / 1000); // Example calculation
+                prestigeGainEl.textContent = formatNumber(potentialPrestigeGain);
+                prestigeButton.disabled = gameState.credit < gameState.prestigeRequirement;
+                prestigeButton.textContent = `Lakukan Prestise (Perlu ${formatNumber(gameState.prestigeRequirement)} Kredit)`;
+
+                // Update permanent upgrade UI (Data Unit)
+                permProdLevelEl.textContent = gameState.permProdLevel;
+                permProdBonusEl.textContent = formatNumber(gameState.permProdBonus.toFixed(2)); // Show bonus with decimals
+                permProdCostEl.textContent = formatNumber(gameState.permProdCost);
+                upgradePermProdBtn.disabled = gameState.quantumEssence < gameState.permProdCost;
+
+                // Update permanent upgrade UI (Energy Core)
+                permEnergyProdLevelEl.textContent = gameState.permEnergyProdLevel;
+                permEnergyProdBonusEl.textContent = formatNumber(gameState.permEnergyProdBonus.toFixed(2));
+                permEnergyProdCostEl.textContent = formatNumber(gameState.permEnergyProdCost);
+                upgradePermEnergyProdBtn.disabled = gameState.quantumEssence < gameState.permEnergyProdCost;
+
+                // Update permanent upgrade UI (Trade Efficiency)
+                permTradeEffLevelEl.textContent = gameState.permTradeEffLevel;
+                permTradeEffBonusEl.textContent = formatNumber(gameState.permTradeEffBonus);
+                permTradeEffCostEl.textContent = formatNumber(gameState.permTradeEffCost);
+                upgradePermTradeEffBtn.disabled = gameState.quantumEssence < gameState.permTradeEffCost;
+
+                // Update permanent upgrade UI (Cost Reduction)
+                permCostReductLevelEl.textContent = gameState.permCostReductLevel;
+                permCostReductBonusEl.textContent = formatNumber(gameState.permCostReductBonus.toFixed(1));
+                permCostReductCostEl.textContent = formatNumber(gameState.permCostReductCost);
+                upgradePermCostReductBtn.disabled = gameState.quantumEssence < gameState.permCostReductCost;
+
+                // Update permanent upgrade UI (QE Gain)
+                permQEGainLevelEl.textContent = gameState.permQEGainLevel;
+                permQEGainBonusEl.textContent = formatNumber(gameState.permQEGainBonus);
+                permQEGainCostEl.textContent = formatNumber(gameState.permQEGainCost);
+                upgradePermQEGainBtn.disabled = gameState.quantumEssence < gameState.permQEGainCost;
+
+                // Update permanent upgrade UI (QE Decay Reduction)
+                permQEDecayReductLevelEl.textContent = gameState.permQEDecayReductLevel;
+                permQEDecayReductBonusEl.textContent = formatNumber(gameState.permQEDecayReductBonus);
+                permQEDecayReductCostEl.textContent = formatNumber(gameState.permQEDecayReductCost);
+                upgradePermQEDecayReductBtn.disabled = gameState.quantumEssence < gameState.permQEDecayReductCost;
+
+
+                // Update local leaderboard (Player + AI Bots)
+                updateLeaderboard();
+
+                // Update Name Change UI
+                freeNameChangesEl.textContent = gameState.freeNameChanges;
+                nameChangeCostEl.textContent = formatNumber(gameState.nameChangeCost);
+                if (gameState.freeNameChanges <= 0 && gameState.credit < gameState.nameChangeCost) {
+                    changeNameButton.disabled = true;
+                } else {
+                    changeNameButton.disabled = false;
+                }
+
+                // Update Quantum Analysis UI
+                quantumAnalysisCostEl.textContent = formatNumber(gameState.quantumAnalysisCost);
+                performQuantumAnalysisBtn.disabled = gameState.credit < gameState.quantumAnalysisCost;
+
+
+                // Update AI Assistant prediction (simple logic)
+                if (Math.random() < 0.15) { // Increased chance to update prediction slightly
+                    const currentDataTrend = dataPriceTrendEl.textContent;
+                    const currentEnergyTrend = gameState.energyCoreUnlocked ? energyPriceTrendEl.textContent : 'Terkunci';
+                    const consumerMarketTrend = consumerMarketTrendEl.textContent;
+
+
+                    let prediction = 'AI Assistant: Mengamati pasar...';
+
+                    if (consumerMarketTrend.includes('Sangat Menguntungkan')) {
+                        prediction = 'AI Assistant: Pasar konsumen sangat kuat! Mungkin saatnya meningkatkan produksi.';
+                    } else if (consumerMarketTrend.includes('Untung Besar')) {
+                        prediction = 'AI Assistant: Pasar konsumen menunjukkan kekuatan.';
+                    } else if (consumerMarketTrend.includes('Inflasi') || consumerMarketTrend.includes('Terlalu Rendah')) {
+                        prediction = 'AI Assistant: Pasar konsumen melemah. Hati-hati dengan investasi besar.';
+                    } else if (currentDataTrend.includes('Sangat Menguntungkan') || (gameState.energyCoreUnlocked && currentEnergyTrend.includes('Sangat Menguntungkan'))) {
+                        prediction = 'AI Assistant: Pasar sangat menguntungkan! Saatnya bertransaksi besar.';
+                    } else if (currentDataTrend.includes('Untung Besar') || (gameState.energyCoreUnlocked && currentEnergyTrend.includes('Untung Besar'))) {
+                        prediction = 'AI Assistant: Ada peluang profit besar.';
+                    } else if (currentDataTrend.includes('Untung') || (gameState.energyCoreUnlocked && currentEnergyTrend.includes('Untung'))) {
+                        prediction = 'AI Assistant: Ada peluang profit di pasar.';
+                    } else if (currentDataTrend.includes('Inflasi') || (gameState.energyCoreUnlocked && currentEnergyTrend.includes('Inflasi'))) {
+                        prediction = 'AI Assistant: Hati-hati, harga sangat rendah. Mungkin saatnya membeli jika Anda berani.';
+                    } else if (currentDataTrend.includes('Terlalu Rendah') || (gameState.energyCoreUnlocked && currentEnergyTrend.includes('Terlalu Rendah'))) {
+                        prediction = 'AI Assistant: Harga rendah, pertimbangkan untuk membeli.';
+                    } else if (currentDataTrend.includes('Naik') && gameState.credit > 1000) {
+                        prediction = 'AI Assistant: Harga Unit Data sedang naik.';
+                    } else if (currentDataTrend.includes('Turun') && gameState.dataUnit > 10) {
+                        prediction = 'AI Assistant: Harga Unit Data sedang turun.';
+                    } else {
+                        prediction = 'AI Assistant: Pasar stabil. Terus amati.';
+                    }
+                    aiPredictionEl.textContent = prediction;
+                } else {
+                    // Keep previous prediction or a default
+                    if (!aiPredictionEl.textContent.startsWith('AI Assistant:')) {
+                        aiPredictionEl.textContent = 'AI Assistant: Mengamati pasar...';
+                    }
+                }
+                console.log("UI updated successfully."); // Log success
+            } catch (error) {
+                console.error("Error during UI update:", error); // Log any errors
+            }
+        }
+
+        // Calculate upgrade cost with permanent reduction
+        function calculateUpgradeCost(baseCost) {
+            return Math.floor(baseCost * (1 - gameState.permCostReductBonus / 100));
+        }
+
+        // Calculate passive QE gain per second (affected by permanent and temporary upgrades)
+        function calculatePassiveQEGain() {
+            const totalAssetValue = gameState.credit +
+                gameState.dataUnit * gameState.dataUnitPrice +
+                gameState.energyCore * gameState.energyCorePrice;
+            let baseGain = totalAssetValue * gameState.passiveQEGainRate;
+
+            // Apply permanent QE gain bonus
+            baseGain *= (1 + gameState.permQEGainBonus / 100);
+
+            // Apply temporary Essence Harvester bonus
+            if (gameState.tempQEHDuration > 0) {
+                baseGain *= (1 + (gameState.tempQEHLevel * gameState.tempQEHBonusPerLevel) / 100);
+            }
+
+            return baseGain;
+        }
+
+        // Calculate base QE decay rate per second (affected by permanent upgrade)
+        function calculateBaseQEDecayRate() {
+            return gameState.qeDecayRateBase * (1 - gameState.permQEDecayReductBonus / 100);
+        }
+
+        // Calculate actual QE decay rate per second (affected by credit level, stability upgrade, and temporary stabilizer)
+        function calculateActualQEDecayRate() {
+            let decayRate = calculateBaseQEDecayRate();
+
+            // Apply low credit penalty
+            if (gameState.credit < gameState.creditLowThreshold) {
+                let lowCreditMultiplier = gameState.lowCreditDecayMultiplier;
+
+                // Reduce the low credit multiplier based on permanent QE Stability upgrade
+                lowCreditMultiplier *= (1 - gameState.qeStabilityReduction / 100);
+
+                // Reduce the low credit multiplier based on temporary Quantum Stabilizer upgrade
+                if (gameState.tempQESDuration > 0) {
+                    lowCreditMultiplier *= (1 - (gameState.tempQESLevel * gameState.tempQESReductionPerLevel) / 100);
+                }
+
+
+                if (lowCreditMultiplier < 1) lowCreditMultiplier = 1; // Ensure at least base decay
+
+                decayRate *= lowCreditMultiplier;
+            }
+
+            return decayRate;
+        }
+
+        // Calculate QE decay rate from Consumer Market
+        function calculateConsumerMarketDecayRate() {
+            // Decay increases as market index decreases
+            // Max decay when index is 0, min decay when index is higher
+            // Using a non-linear approach to make decay worse as index approaches 0
+            // Example: index 5 -> low decay, index 1 -> high decay, index 0.1 -> very high decay
+
+            let decayMultiplier = 0;
+            if (gameState.consumerMarketIndex < gameState.consumerMarketLowThreshold) {
+                // Decay increases significantly below the threshold
+                // Formula: (threshold - index) / threshold * multiplier + 1
+                // At index = threshold, multiplier = 1
+                // At index = 0, multiplier = consumerMarketDecayMultiplier + 1
+                decayMultiplier = (gameState.consumerMarketLowThreshold - gameState.consumerMarketIndex) / gameState.consumerMarketLowThreshold * gameState.consumerMarketDecayMultiplier + 1;
+            } else {
+                // Slight decay even above threshold, decreases as index increases
+                // Formula: (max_index - index) / max_index * small_base_multiplier
+                // Assuming max index is around 5-6 based on new scaling
+                const maxPossibleIndex = 6; // Based on expected max index after scaling
+                decayMultiplier = Math.max(0, (maxPossibleIndex - gameState.consumerMarketIndex) / maxPossibleIndex * 0.5); // Small decay above threshold
+            }
+
+            // Ensure multiplier is not negative
+            if (decayMultiplier < 0) decayMultiplier = 0;
+
+
+            return gameState.consumerMarketDecayBaseRate * decayMultiplier;
+        }
+
+
+        // Function to update price trend indicator text and color
+        function updatePriceTrendIndicator(currentPrice, lastPrice, element) {
+            const priceChange = currentPrice - lastPrice;
+            element.classList.remove('price-up', 'price-down', 'price-stable', 'price-low', 'price-too-low', 'price-inflation', 'price-profit', 'price-big-profit', 'price-huge-profit');
+
+            let trendText = 'Stabil';
+            let trendClass = 'price-stable';
+
+            // Determine trend based on the *type* of value (price or index)
+            if (element === dataPriceTrendEl || element === energyPriceTrendEl) {
+                // Price Trend Logic
+                if (currentPrice < 2.00) {
+                    trendText = 'Inflasi';
+                    trendClass = 'price-inflation';
+                } else if (currentPrice < 5.00) {
+                    trendText = 'Terlalu Rendah';
+                    trendClass = 'price-too-low';
+                } else if (currentPrice < 7.00) {
+                    trendText = 'Rendah';
+                    trendClass = 'price-low';
+                } else if (currentPrice >= 10.00 && currentPrice < 15.00) {
+                    trendText = 'Untung';
+                    trendClass = 'price-profit';
+                } else if (currentPrice >= 15.00 && currentPrice < 20.00) {
+                    trendText = 'Untung Besar';
+                    trendClass = 'price-big-profit';
+                } else if (currentPrice >= 20.00) {
+                    trendText = 'Sangat Menguntungkan';
+                    trendClass = 'price-huge-profit';
+                } else { // Default stable range (7.00 to 9.99)
+                    trendText = 'Stabil';
+                    trendClass = 'price-stable';
+                }
+
+                // Add secondary indicator based on recent movement
+                if (priceChange > 0.1) { // Threshold for "up"
+                    trendText += ' (Naik)';
+                    element.classList.add('price-up'); // Add green color if price is rising significantly
+                } else if (priceChange < -0.1) { // Threshold for "down"
+                    trendText += ' (Turun)';
+                    element.classList.add('price-down'); // Add red color if price is falling significantly
+                } else {
+                    element.classList.add('price-stable'); // Add gray color if stable
+                }
+
+            } else if (element === consumerMarketTrendEl) {
+                // Consumer Market Index Trend Logic
+                // Higher index is good, lower is bad
+                if (currentPrice >= 4.0) {
+                    trendText = 'Sangat Menguntungkan';
+                    trendClass = 'price-huge-profit'; // Green
+                } else if (currentPrice >= 3.0) {
+                    trendText = 'Untung Besar';
+                    trendClass = 'price-big-profit'; // Greenish
+                } else if (currentPrice >= 2.0) {
+                    trendText = 'Untung';
+                    trendClass = 'price-profit'; // Light Green
+                } else if (currentPrice >= 1.0) {
+                    trendText = 'Stabil';
+                    trendClass = 'price-stable'; // Gray
+                } else if (currentPrice >= 0.5) {
+                    trendText = 'Rendah';
+                    trendClass = 'price-low'; // Yellow
+                } else if (currentPrice >= 0.1) {
+                    trendText = 'Terlalu Rendah';
+                    trendClass = 'price-too-low'; // Orange
+                } else { // currentPrice < 0.1
+                    trendText = 'Anjlok';
+                    trendClass = 'price-inflation'; // Red
+                }
+
+                // Add secondary indicator based on recent movement
+                if (priceChange > 0.05) { // Threshold for "up" (smaller change for index)
+                    trendText += ' (Naik)';
+                    element.classList.add('price-up'); // Add green color if index is rising
+                } else if (priceChange < -0.05) { // Threshold for "down" (smaller change for index)
+                    trendText += ' (Turun)';
+                    element.classList.add('price-down'); // Add red color if index is falling
+                } else {
+                    element.classList.add('price-stable'); // Add gray color if stable
+                }
+            }
+
+
+            element.textContent = trendText;
+            element.classList.add(trendClass); // Apply the primary color class
+        }
+
+
+        // Format numbers for display (e.g., 1000 -> 1K, 1000000 -> 1M)
+        function formatNumber(num) {
+            if (num === null || num === undefined) return '0';
+            num = parseFloat(num); // Ensure it's a number
+            if (isNaN(num)) return '0';
+
+            if (num >= 1e12) return (num / 1e12).toFixed(1) + 'T'; // Trillion
+            if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B'; // Billion
+            if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M'; // Million
+            if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K'; // Thousand
+            return num.toFixed(num % 1 !== 0 && num < 1000 && num > 0.01 ? 2 : (num === 0 ? 0 : (num < 0.01 && num !== 0 ? 4 : 0))); // Show decimals for numbers < 1000 if they are not integers, show 4 for very small numbers, 0 for integers/large numbers
+        }
+
+        // Save game state to localStorage
+        function saveGame() {
+            try {
+                localStorage.setItem('marketFlowGameState', JSON.stringify(gameState));
+                // console.log("Game Saved!"); // Optional: for debugging
+            } catch (error) {
+                console.error("Error saving game:", error);
+            }
+        }
+
+        // Load game state from localStorage
+        function loadGame() {
+            try {
+                const savedState = localStorage.getItem('marketFlowGameState');
+                if (savedState) {
+                    const loadedState = JSON.parse(savedState);
+                    // Merge loaded state, ensuring default values for new properties
+                    gameState = {
+                        ...gameState, // Start with default structure
+                        ...loadedState // Overwrite with loaded values
+                    };
+
+                    // Ensure numerical/boolean/array values are correct types after loading
+                    gameState.playerName = gameState.playerName || "Anda";
+                    gameState.freeNameChanges = parseInt(gameState.freeNameChanges) || 0; // Ensure free changes is number
+                    gameState.nameChangeCost = parseFloat(gameState.nameChangeCost) || 10000;
+
+                    // Ensure donation link is loaded correctly, fallback to default
+                    gameState.danaDonationLink = gameState.danaDonationLink || "https://link.dana.id/minta?full_url=https://qr.dana.id/v1/281012092025050431246770";
+
+
+                    gameState.credit = parseFloat(gameState.credit) || 0;
+                    gameState.dataUnit = parseFloat(gameState.dataUnit) || 0;
+                    gameState.dataUnitPrice = parseFloat(gameState.dataUnitPrice) || 10;
+                    gameState.lastDataUnitPrice = parseFloat(gameState.lastDataUnitPrice) || gameState.dataUnitPrice;
+                    gameState.dataPriceHistory = Array.isArray(gameState.dataPriceHistory) ? gameState.dataPriceHistory : [];
+
+
+                    gameState.energyCore = parseFloat(gameState.energyCore) || 0;
+                    gameState.energyCorePrice = parseFloat(gameState.energyCorePrice) || 50;
+                    gameState.lastEnergyCorePrice = parseFloat(gameState.lastEnergyCorePrice) || gameState.energyCorePrice;
+                    gameState.energyCoreUnlocked = Boolean(gameState.energyCoreUnlocked);
+                    gameState.energyCorePriceHistory = Array.isArray(gameState.energyCorePriceHistory) ? gameState.energyCorePriceHistory : [];
+
+                    // Load Consumer Market State - ENSURE DEFAULT IS WITHIN NEW RANGE
+                    gameState.consumerMarketIndex = parseFloat(gameState.consumerMarketIndex) || 2.5;
+                    gameState.lastConsumerMarketIndex = parseFloat(gameState.lastConsumerMarketIndex) || gameState.consumerMarketIndex;
+                    gameState.consumerMarketHistory = Array.isArray(gameState.consumerMarketHistory) ? gameState.consumerMarketHistory : [];
+
+
+                    gameState.quantumEssence = parseFloat(gameState.quantumEssence) || 0;
+                    gameState.highScore = parseFloat(gameState.highScore) || 0;
+
+                    // Load AI Bots, initialize if needed
+                    if (!Array.isArray(gameState.aiBots) || gameState.aiBots.length === 0) {
+                        initializeAIBots();
+                    } else {
+                        // Ensure AI bot properties are correct types
+                        gameState.aiBots = gameState.aiBots.map(bot => ({
+                            name: bot.name,
+                            quantumEssence: parseFloat(bot.quantumEssence) || 0,
+                            volatility: parseFloat(bot.volatility) || 0.01, // Default volatility
+                            growthRate: parseFloat(bot.growthRate) || 0.1 // Default growth rate
+                        }));
+                        // Add any new bots if the list expanded
+                        const existingNames = gameState.aiBots.map(bot => bot.name);
+                        aiBotNames.forEach(name => {
+                            if (!existingNames.includes(name)) {
+                                gameState.aiBots.push({
+                                    name: name,
+                                    quantumEssence: Math.random() * 1000, // Start with some random QE
+                                    volatility: 0.01 + Math.random() * 0.02, // Random volatility
+                                    growthRate: 0.1 + Math.random() * 0.1 // Random growth rate
+                                });
+                            }
+                        });
+                    }
+
+
+                    gameState.autoProdLevel = parseInt(gameState.autoProdLevel) || 0;
+                    gameState.autoProdCost = parseFloat(gameState.autoProdCost) || 100;
+                    // autoProdSpeed will be calculated based on level and perm bonus
+
+                    gameState.autoProdEnergyLevel = parseInt(gameState.autoProdEnergyLevel) || 0;
+                    gameState.autoProdEnergyCost = parseFloat(gameState.autoProdEnergyCost) || 2000;
+                    // autoProdEnergySpeed will be calculated
+
+                    gameState.autoTradeLevel = parseInt(gameState.autoTradeLevel) || 0;
+                    gameState.autoTradeCost = parseFloat(gameState.autoTradeCost) || 500;
+                    gameState.autoTradeEfficiency = parseFloat(gameState.autoTradeEfficiency) || 0;
+
+                    gameState.unlockEnergyCoreCost = parseFloat(gameState.unlockEnergyCoreCost) || 5000;
+
+                    // Load Credit-Based Upgrade for QE Stability
+                    gameState.qeStabilityLevel = parseInt(gameState.qeStabilityLevel) || 0;
+                    gameState.qeStabilityCost = parseFloat(gameState.qeStabilityCost) || 500;
+                    gameState.qeStabilityReduction = parseFloat(gameState.qeStabilityReduction) || 0;
+
+                    // Load Temporary QE Upgrades
+                    gameState.tempQESLevel = parseInt(gameState.tempQESLevel) || 0;
+                    gameState.tempQESCost = parseFloat(gameState.tempQESCost) || 1000;
+                    gameState.tempQESDuration = parseFloat(gameState.tempQESDuration) || 0;
+                    gameState.tempQESMaxLevel = parseInt(gameState.tempQESMaxLevel) || 5;
+                    gameState.tempQESBaseDuration = parseFloat(gameState.tempQESBaseDuration) || 30;
+                    gameState.tempQESReductionPerLevel = parseFloat(gameState.tempQESReductionPerLevel) || 10;
+
+
+                    gameState.tempQEHLevel = parseInt(gameState.tempQEHLevel) || 0;
+                    gameState.tempQEHCost = parseFloat(gameState.tempQEHCost) || 1500;
+                    gameState.tempQEHDuration = parseFloat(gameState.tempQEHDuration) || 0;
+                    gameState.tempQEHMaxLevel = parseInt(gameState.tempQEHMaxLevel) || 5;
+                    gameState.tempQEHBaseDuration = parseFloat(gameState.tempQEHBaseDuration) || 45;
+                    gameState.tempQEHBonusPerLevel = parseFloat(gameState.tempQEHBonusPerLevel) || 10;
+
+                    gameState.tempQEMLevel = parseInt(gameState.tempQEMLevel) || 0;
+                    gameState.tempQEMCost = parseFloat(gameState.tempQEMCost) || 3000;
+                    gameState.tempQEMDuration = parseFloat(gameState.tempQEMDuration) || 0;
+                    gameState.tempQEMMaxLevel = parseInt(gameState.tempQEMMaxLevel) || 3;
+                    gameState.tempQEMBaseDuration = parseFloat(gameState.tempQEMBaseDuration) || 60;
+                    gameState.tempQEMGainMultiplierBonus = parseFloat(gameState.tempQEMGainMultiplierBonus) || 0.1;
+
+
+                    gameState.permProdLevel = parseInt(gameState.permProdLevel) || 0;
+                    gameState.permProdCost = parseFloat(gameState.permProdCost) || 1;
+                    gameState.permProdBonus = parseFloat(gameState.permProdBonus) || 0;
+
+                    gameState.permEnergyProdLevel = parseInt(gameState.permEnergyProdLevel) || 0;
+                    gameState.permEnergyProdCost = parseFloat(gameState.permEnergyProdCost) || 5;
+                    gameState.permEnergyProdBonus = parseFloat(gameState.permEnergyProdBonus) || 0;
+
+                    gameState.permTradeEffLevel = parseInt(gameState.permTradeEffLevel) || 0;
+                    gameState.permTradeEffCost = parseFloat(gameState.permTradeEffCost) || 3;
+                    gameState.permTradeEffBonus = parseFloat(gameState.permTradeEffBonus) || 0;
+
+                    gameState.permCostReductLevel = parseInt(gameState.permCostReductLevel) || 0;
+                    gameState.permCostReductCost = parseFloat(gameState.permCostReductCost) || 10;
+                    gameState.permCostReductBonus = parseFloat(gameState.permCostReductBonus) || 0;
+
+                    // Load Permanent Upgrades for QE (bought with QE)
+                    gameState.permQEGainLevel = parseInt(gameState.permQEGainLevel) || 0;
+                    // Use loaded cost if available, otherwise use the new calculated base cost
+                    gameState.permQEGainCost = parseFloat(gameState.permQEGainCost) || (5 * 38);
+                    gameState.permQEGainBonus = parseFloat(gameState.permQEGainBonus) || 0;
+                    gameState.permQEGainCostMultiplier = parseFloat(gameState.permQEGainCostMultiplier) || 1.4;
+
+
+                    gameState.permQEDecayReductLevel = parseInt(gameState.permQEDecayReductLevel) || 0;
+                    // Use loaded cost if available, otherwise use the new calculated base cost
+                    gameState.permQEDecayReductCost = parseFloat(gameState.permQEDecayReductCost) || (8 * 30);
+                    gameState.permQEDecayReductBonus = parseFloat(gameState.permQEDecayReductBonus) || 0;
+                    gameState.permQEDecayReductCostMultiplier = parseFloat(gameState.permQEDecayReductCostMultiplier) || 1.5;
+
+
+                    // Load New QE Mechanics Settings (ensure they exist)
+                    gameState.passiveQEGainRate = parseFloat(gameState.passiveQEGainRate) || 0.000005;
+                    gameState.qeDecayRateBase = parseFloat(gameState.qeDecayRateBase) || 0.001;
+                    gameState.creditLowThreshold = parseFloat(gameState.creditLowThreshold) || 1500;
+                    gameState.lowCreditDecayMultiplier = parseFloat(gameState.lowCreditDecayMultiplier) || 50;
+
+                    // Load Extreme Gain/Loss Settings
+                    gameState.extremeGainThreshold = parseFloat(gameState.extremeGainThreshold) || 1.0;
+                    gameState.extremeGainMultiplier = parseFloat(gameState.extremeGainMultiplier) || 0.1;
+                    gameState.extremeLossThreshold = parseFloat(gameState.extremeLossThreshold) || 0.5;
+                    gameState.extremeLossMultiplier = parseFloat(gameState.extremeLossMultiplier) || 0.4;
+                    gameState.extremeLossCap = parseFloat(gameState.extremeLossCap) || 0.8;
+
+                    // Load Quantum Analysis Settings
+                    gameState.quantumAnalysisCost = parseFloat(gameState.quantumAnalysisCost) || 5000;
+                    gameState.quantumAnalysisQEGainMin = parseFloat(gameState.quantumAnalysisQEGainMin) || 0.005;
+                    gameState.quantumAnalysisQEGainMax = parseFloat(gameState.quantumAnalysisQEGainMax) || 0.05;
+                    gameState.quantumAnalysisSuccessChance = parseFloat(gameState.quantumAnalysisSuccessChance) || 0.03;
+
+                    // Load Consumer Market Decay Settings - ADJUSTED THRESHOLD
+                    gameState.consumerMarketDecayBaseRate = parseFloat(gameState.consumerMarketDecayBaseRate) || 0.0005;
+                    gameState.consumerMarketLowThreshold = parseFloat(gameState.consumerMarketLowThreshold) || 1.5; // Adjusted threshold
+                    gameState.consumerMarketDecayMultiplier = parseFloat(gameState.consumerMarketDecayMultiplier) || 8;
+
+
+                    gameState.maxPriceHistory = parseInt(gameState.maxPriceHistory) || 50;
+                    gameState.gameTick = parseInt(gameState.gameTick) || 100; // Ensure gameTick is loaded correctly
+                    gameState.consumerMarketUpdateInterval = parseInt(gameState.consumerMarketUpdateInterval) || 3000;
+
+
+                    // Recalculate derived stats after loading
+                    gameState.autoProdSpeed = gameState.autoProdLevel * (0.1 + (gameState.permProdBonus / 10)) + gameState.permProdBonus;
+                    gameState.autoProdEnergySpeed = gameState.autoProdEnergyLevel * (0.5 + (gameState.permEnergyProdBonus / 5)) + gameState.permEnergyProdBonus;
+
+                    // Initial calculation of QE Stability reduction (Permanent)
+                    gameState.qeStabilityReduction = gameState.qeStabilityLevel * 5; // 5% reduction per level
+
+                    // Ensure temporary upgrade costs and durations are calculated based on loaded levels
+                    gameState.tempQESCost = 1000 * Math.pow(1.5, gameState.tempQESLevel); // Recalculate cost based on level
+                    gameState.tempQEHCost = 1500 * Math.pow(1.6, gameState.tempQEHLevel);
+                    gameState.tempQEMCost = 3000 * Math.pow(1.8, gameState.tempQEMLevel);
+
+
+                    // Ensure price history is populated if empty (e.g., first load)
+                    if (gameState.dataPriceHistory.length === 0) {
+                        for (let i = 0; i < gameState.maxPriceHistory; i++) {
+                            gameState.dataPriceHistory.push(gameState.dataUnitPrice);
+                        }
+                    }
+                    if (gameState.energyCorePriceHistory.length === 0 && gameState.energyCoreUnlocked) {
+                        for (let i = 0; i < gameState.maxPriceHistory; i++) {
+                            gameState.energyCorePriceHistory.push(gameState.energyCorePrice);
+                        }
+                    }
+                    // Ensure consumer market history is populated if empty
+                    if (gameState.consumerMarketHistory.length === 0) {
+                        for (let i = 0; i < gameState.maxPriceHistory; i++) {
+                            gameState.consumerMarketHistory.push(gameState.consumerMarketIndex);
+                        }
+                    }
+                    console.log("Price history checked/initialized."); // Log step
+
+                    // Set the donation link dynamically after loading
+                    setDonationLink();
+                    console.log("Donation link set dynamically."); // Log step
+
+
+                    updateUI(); // Initial UI update
+                    console.log("Initial UI update complete."); // Log step
+
+                    // Hide loading overlay after a delay
+                    setTimeout(() => {
+                        loadingOverlayEl.classList.add('hidden');
+                        console.log("Loading overlay hidden."); // Log step
+                    }, 1500); // Hide after 1.5 seconds
+
+                    // Redraw charts after load and initial UI update
+                    drawChart(dataPriceChartCtx, gameState.dataPriceHistory, '#4299e1');
+                    if (gameState.energyCoreUnlocked) {
+                        drawChart(energyCorePriceChartCtx, gameState.energyCorePriceHistory, '#f6ad55');
+                    }
+                    drawChart(consumerMarketChartCtx, gameState.consumerMarketHistory, '#667eea'); // Draw consumer market chart
+                    console.log("Charts drawn."); // Log step
+
+                } else {
+                    // Initialize AI Bots for a new game
+                    initializeAIBots();
+
+                    // Initialize price history for a new game
+                    for (let i = 0; i < gameState.maxPriceHistory; i++) {
+                        gameState.dataPriceHistory.push(gameState.dataUnitPrice);
+                        gameState.consumerMarketHistory.push(gameState.consumerMarketIndex); // Initialize consumer market history
+                    }
+                    // Energy core history initialized when unlocked
+
+                    // Apply permanent bonuses if no save exists (first time playing)
+                    // This is now handled by the recalculation after loading (even if loaded state is empty)
+                    console.log("No save game found. Starting new game.");
+
+                    // Set the donation link dynamically for a new game
+                    setDonationLink();
+                    console.log("Donation link set dynamically for new game."); // Log step
+                }
+            } catch (error) {
+                console.error("Error loading game:", error);
+                // Optionally, reset game state to default if loading fails completely
+                // gameState = { ...defaultGameStateStructure }; // You might need a default structure defined elsewhere
+                // initializeAIBots(); // Re-initialize bots if needed
+                // Initialize price history if needed
+                for (let i = 0; i < gameState.maxPriceHistory; i++) {
+                    gameState.dataPriceHistory.push(gameState.dataUnitPrice);
+                    gameState.consumerMarketHistory.push(gameState.consumerMarketIndex); // Initialize consumer market history
+                }
+                // Ensure the donation link is set even if loading fails
+                setDonationLink();
+                console.log("Donation link set dynamically after load error."); // Log step
+            }
+        }
+
+        // Initialize AI Bots
+        function initializeAIBots() {
+            gameState.aiBots = aiBotNames.map(name => ({
+                name: name,
+                quantumEssence: Math.random() * 1000, // Start with some random initial QE
+                volatility: 0.01 + Math.random() * 0.02, // Random volatility for QE fluctuation
+                growthRate: 0.1 + Math.random() * 0.1 // Random base growth rate
+            }));
+            console.log("AI Bots Initialized:", gameState.aiBots);
+        }
+
+        // Update AI Bot QE
+        function updateAIBots() {
+            try {
+                gameState.aiBots.forEach(bot => {
+                    // Simulate growth, affected by Consumer Market Index
+                    // Lower consumer market index reduces growth
+                    // Scale the consumer market index effect to the new range (0-6)
+                    // Example: index 6 -> full growth, index 0 -> 0 growth
+                    const scaledMarketEffect = gameState.consumerMarketIndex / 6; // Assuming max index is around 6
+                    let effectiveGrowthRate = bot.growthRate * scaledMarketEffect;
+                    if (effectiveGrowthRate < 0) effectiveGrowthRate = 0; // Growth can't be negative
+
+                    let change = effectiveGrowthRate * (1 + Math.random()); // Base growth + random factor
+
+                    // Simulate volatility (can go up or down)
+                    change += (Math.random() * 2 - 1) * bot.quantumEssence * bot.volatility;
+
+                    bot.quantumEssence += change;
+
+                    // Prevent QE from going below zero
+                    if (bot.quantumEssence < 0) {
+                        bot.quantumEssence = 0;
+                    }
+                });
+                updateLeaderboard(); // Update leaderboard display after updating bots
+            } catch (error) {
+                console.error("Error updating AI bots:", error);
+            }
+        }
+
+        // Update Leaderboard Display
+        function updateLeaderboard() {
+            try {
+                // Combine player and AI bots, sort by QE
+                const leaderboardEntries = [{
+                        name: gameState.playerName,
+                        quantumEssence: gameState.highScore,
+                        isPlayer: true
+                    } // Use high score for player on leaderboard
+                ].concat(gameState.aiBots.map(bot => ({...bot,
+                    isPlayer: false
+                }))); // Add isPlayer flag to bots
+
+                leaderboardEntries.sort((a, b) => b.quantumEssence - a.quantumEssence);
+
+                // Render leaderboard
+                localLeaderboardEl.innerHTML = '';
+                leaderboardEntries.forEach((entry, index) => {
+                    const rank = index + 1;
+                    const name = entry.name;
+                    const qe = formatNumber(entry.quantumEssence.toFixed(2)); // Format QE for display
+                    const playerClass = entry.isPlayer ? 'player' : ''; // Add player class for styling
+                    localLeaderboardEl.innerHTML += `<p class="leaderboard-item ${playerClass}">${rank}. ${name}: ${qe} QE</p>`;
+                });
+            } catch (error) {
+                console.error("Error updating leaderboard:", error);
+            }
+        }
+
+
+        // --- Chart Drawing Function ---
+        function drawChart(ctx, history, color) {
+            try {
+                if (!ctx || history.length === 0) return;
+
+                const canvas = ctx.canvas;
+                const width = canvas.width;
+                const height = canvas.height;
+
+                // Clear canvas
+                ctx.clearRect(0, 0, width, height);
+
+                // Find min/max price in history
+                const minVal = Math.min(...history);
+                const maxVal = Math.max(...history);
+                // Add padding to min/max for better visualization
+                const padding = (maxVal - minVal) * 0.1 || 1; // Add 10% padding or 1 if range is zero
+                const displayMin = Math.max(0, minVal - padding); // Don't go below zero
+                const displayMax = maxVal + padding;
+                const displayRange = displayMax - displayMin;
+
+                // Handle case where displayRange is zero (all values are the same)
+                if (displayRange === 0) {
+                    const midY = height / 2;
+                    ctx.beginPath();
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 2;
+                    ctx.moveTo(0, midY);
+                    ctx.lineTo(width, midY);
+                    ctx.stroke();
+                    return; // Exit function
+                }
+
+
+                // Draw line
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+
+                // Move to the first point
+                const firstX = 0;
+                const firstY = height - ((history[0] - displayMin) / displayRange) * height;
+                ctx.moveTo(firstX, firstY);
+
+                // Draw line to subsequent points
+                for (let i = 1; i < history.length; i++) {
+                    const x = (i / (history.length - 1)) * width;
+                    const y = height - ((history[i] - displayMin) / displayRange) * height;
+                    ctx.lineTo(x, y);
+                }
+
+                ctx.stroke();
+            } catch (error) {
+                console.error("Error drawing chart:", error);
+            }
+        }
+
+
+        // --- Market Logic ---
+        function updateMarket() {
+            try {
+                // Update Data Unit Price
+                let changeData = (Math.random() * 2 - 1) * gameState.dataUnitPrice * gameState.marketVolatilityData;
+                // Simple AI Influence on Data Unit
+                if (Math.random() < 0.05) {
+                    const aiAction = Math.random() < 0.5 ? 'buy' : 'sell';
+                    const aiVolume = Math.random() * 50 * (1 + gameState.autoTradeLevel * 0.05);
+                    if (aiAction === 'buy') {
+                        changeData += (aiVolume / 100) * gameState.dataUnitPrice * gameState.aiInfluenceFactor;
+                    } else {
+                        changeData -= (aiVolume / 100) * gameState.dataUnitPrice * gameState.aiInfluenceFactor;
+                    }
+                }
+                gameState.dataUnitPrice += changeData;
+                if (gameState.dataUnitPrice < 0.1) gameState.dataUnitPrice = 0.1; // Prevent price from going too low
+
+                // Update price history for Data Unit and redraw chart
+                gameState.dataPriceHistory.push(gameState.dataUnitPrice);
+                if (gameState.dataPriceHistory.length > gameState.maxPriceHistory) {
+                    gameState.dataPriceHistory.shift(); // Remove oldest price
+                }
+                drawChart(dataPriceChartCtx, gameState.dataPriceHistory, '#4299e1');
+
+
+                // Update Energy Core Price (if unlocked)
+                if (gameState.energyCoreUnlocked) {
+                    let changeEnergy = (Math.random() * 2 - 1) * gameState.energyCorePrice * gameState.marketVolatilityEnergy;
+                    // Simple AI Influence on Energy Core (less frequent but potentially larger)
+                    if (Math.random() < 0.03) { // Lower chance
+                        const aiAction = Math.random() < 0.5 ? 'buy' : 'sell';
+                        const aiVolume = Math.random() * 20 * (1 + gameState.autoTradeLevel * 0.1); // Lower volume but higher influence factor below
+                        if (aiAction === 'buy') {
+                            changeEnergy += (aiVolume / 50) * gameState.energyCorePrice * gameState.aiInfluenceFactor; // Higher influence per volume
+                        } else {
+                            changeEnergy -= (aiVolume / 50) * gameState.energyCorePrice * gameState.aiInfluenceFactor;
+                        }
+                    }
+                    gameState.energyCorePrice += changeEnergy;
+                    if (gameState.energyCorePrice < 1) gameState.energyCorePrice = 1; // Prevent price from going too low
+
+                    // Update price history for Energy Core and redraw chart
+                    gameState.energyCorePriceHistory.push(gameState.energyCorePrice);
+                    if (gameState.energyCorePriceHistory.length > gameState.maxPriceHistory) {
+                        gameState.energyCorePriceHistory.shift(); // Remove oldest price
+                    }
+                    drawChart(energyCorePriceChartCtx, gameState.energyCorePriceHistory, '#f6ad55');
+                }
+
+
+                updateUI();
+            } catch (error) {
+                console.error("Error updating market:", error);
+            }
+        }
+
+        // Update Consumer Market Index - ADJUSTED SCALING AND CLAMPING
+        function updateConsumerMarket() {
+            try {
+                // Consumer Market Index is influenced by average price of resources, with some randomness
+                let averagePrice = (gameState.dataUnitPrice + (gameState.energyCoreUnlocked ? gameState.energyCorePrice : gameState.dataUnitPrice)) / (gameState.energyCoreUnlocked ? 2 : 1);
+
+                // Normalize average price to influence index (e.g., average price 10 -> index 2.5, average price 20 -> index 5)
+                // Scaling factor adjusted for the new range (0.5 to 5+)
+                let targetIndex = averagePrice * 0.25; // Adjusted scaling factor
+
+                // Add some randomness to the target index (smaller fluctuation for new range)
+                targetIndex += (Math.random() * 2 - 1) * 0.5; // +/- 0.5 fluctuation
+
+                // Smoothly move current index towards target index
+                const smoothingFactor = 0.1; // How quickly the index adjusts
+                gameState.consumerMarketIndex = gameState.consumerMarketIndex * (1 - smoothingFactor) + targetIndex * smoothingFactor;
+
+                // Clamp index within the desired range (e.g., minimum slightly below 0.5, maximum slightly above 5)
+                if (gameState.consumerMarketIndex < 0.1) gameState.consumerMarketIndex = 0.1; // Prevent going too far below 0.5
+                if (gameState.consumerMarketIndex > 6) gameState.consumerMarketIndex = 6; // Allow slightly above 5
+
+
+                // Update history and redraw chart
+                gameState.consumerMarketHistory.push(gameState.consumerMarketIndex);
+                if (gameState.consumerMarketHistory.length > gameState.maxPriceHistory) {
+                    gameState.consumerMarketHistory.shift(); // Remove oldest index
+                }
+                drawChart(consumerMarketChartCtx, gameState.consumerMarketHistory, '#667eea'); // Purple for Consumer Market
+
+
+                updateUI();
+            } catch (error) {
+                console.error("Error updating consumer market:", error);
+            }
+        }
+
+
+        // --- Action Buttons ---
+        // Helper function to get quantity from input or default to 1
+        function getQuantity(inputElement) {
+            const quantity = parseInt(inputElement.value);
+            return isNaN(quantity) || quantity < 1 ? 1 : quantity;
+        }
+
+        // Buy Data Unit
+        buyDataUnitBtn.addEventListener('click', () => {
+            const quantity = getQuantity(dataUnitQuantityInput);
+            const cost = quantity * gameState.dataUnitPrice;
+            const oldCredit = gameState.credit; // Store credit before transaction
+
+            if (gameState.credit >= cost) {
+                gameState.credit -= cost;
+                gameState.dataUnit += quantity;
+                // Check for QE gain/loss on trade
+                checkQETradeEffect('buy', 'dataUnit', quantity, cost, oldCredit); // Pass oldCredit
+                updateUI();
+                saveGame();
+            } else {
+                showModal('Kredit tidak cukup untuk membeli Unit Data.'); // Show modal for insufficient funds
+            }
+        });
+
+        // Sell Data Unit
+        sellDataUnitBtn.addEventListener('click', () => {
+            const quantity = getQuantity(dataUnitQuantityInput);
+            const oldCredit = gameState.credit; // Store credit before transaction
+
+            if (gameState.dataUnit >= quantity) {
+                const revenue = quantity * gameState.dataUnitPrice;
+                gameState.dataUnit -= quantity;
+                gameState.credit += revenue;
+                // Check for QE gain/loss on trade
+                checkQETradeEffect('sell', 'dataUnit', quantity, revenue, oldCredit); // Pass oldCredit
+                updateUI();
+                saveGame();
+            } else {
+                showModal('Tidak ada Unit Data yang cukup untuk dijual.'); // Show modal for insufficient units
+            }
+        });
+
+        // Quick Buy Data Unit buttons
+        buyDataQuickBtns.forEach(button => {
+            button.addEventListener('click', () => {
+                const quantity = parseInt(button.dataset.quantity);
+                const cost = quantity * gameState.dataUnitPrice;
+                const oldCredit = gameState.credit; // Store credit before transaction
+
+                if (gameState.credit >= cost) {
+                    gameState.credit -= cost;
+                    gameState.dataUnit += quantity;
+                    // Check for QE gain/loss on trade
+                    checkQETradeEffect('buy', 'dataUnit', quantity, cost, oldCredit); // Pass oldCredit
+                    updateUI();
+                    saveGame();
+                } else {
+                    showModal(`Kredit tidak cukup untuk membeli ${quantity} Unit Data.`); // Show modal
+                }
+            });
+        });
+
+        // Quick Sell Data Unit buttons
+        sellDataQuickBtns.forEach(button => {
+            button.addEventListener('click', () => {
+                const quantity = parseInt(button.dataset.quantity);
+                const oldCredit = gameState.credit; // Store credit before transaction
+
+                if (gameState.dataUnit >= quantity) {
+                    const revenue = quantity * gameState.dataUnitPrice;
+                    gameState.dataUnit -= quantity;
+                    gameState.credit += revenue;
+                    // Check for QE gain/loss on trade
+                    checkQETradeEffect('sell', 'dataUnit', quantity, revenue, oldCredit); // Pass oldCredit
+                    updateUI();
+                    saveGame();
+                } else {
+                    showModal(`Tidak ada ${quantity} Unit Data yang cukup untuk dijual.`); // Show modal
+                }
+            });
+        });
+
+
+        // Buy Energy Core
+        buyEnergyCoreBtn.addEventListener('click', () => {
+            if (!gameState.energyCoreUnlocked) return;
+            const quantity = getQuantity(energyCoreQuantityInput);
+            const cost = quantity * gameState.energyCorePrice;
+            const oldCredit = gameState.credit; // Store credit before transaction
+
+            if (gameState.credit >= cost) {
+                gameState.credit -= cost;
+                gameState.energyCore += quantity;
+                // Check for QE gain/loss on trade
+                checkQETradeEffect('buy', 'energyCore', quantity, cost, oldCredit); // Pass oldCredit
+                updateUI();
+                saveGame();
+            } else {
+                showModal('Kredit tidak cukup untuk membeli Inti Energi.'); // Show modal
+            }
+        });
+
+        // Sell Energy Core
+        sellEnergyCoreBtn.addEventListener('click', () => {
+            if (!gameState.energyCoreUnlocked) return;
+            const quantity = getQuantity(energyCoreQuantityInput);
+            const oldCredit = gameState.credit; // Store credit before transaction
+
+            if (gameState.energyCore >= quantity) {
+                const revenue = quantity * gameState.energyCorePrice;
+                gameState.energyCore -= quantity;
+                gameState.credit += revenue;
+                // Check for QE gain/loss on trade
+                checkQETradeEffect('sell', 'energyCore', quantity, revenue, oldCredit); // Pass oldCredit
+                updateUI();
+                saveGame();
+            } else {
+                showModal('Tidak ada Inti Energi yang cukup untuk dijual.'); // Show modal
+            }
+        });
+
+        // Quick Buy Energy Core buttons
+        buyEnergyQuickBtns.forEach(button => {
+            button.addEventListener('click', () => {
+                if (!gameState.energyCoreUnlocked) return;
+                const quantity = parseInt(button.dataset.quantity);
+                const cost = quantity * gameState.energyCorePrice;
+                const oldCredit = gameState.credit; // Store credit before transaction
+
+                if (gameState.credit >= cost) {
+                    gameState.credit -= cost;
+                    gameState.energyCore += quantity;
+                    // Check for QE gain/loss on trade
+                    checkQETradeEffect('buy', 'energyCore', quantity, cost, oldCredit); // Pass oldCredit
+                    updateUI();
+                    saveGame();
+                } else {
+                    showModal(`Kredit tidak cukup untuk membeli ${quantity} Inti Energi.`); // Show modal
+                }
+            });
+        });
+
+        // Quick Sell Energy Core buttons
+        sellEnergyQuickBtns.forEach(button => {
+            button.addEventListener('click', () => {
+                if (!gameState.energyCoreUnlocked) return;
+                const quantity = parseInt(button.dataset.quantity);
+                const revenue = quantity * gameState.energyCorePrice;
+                const oldCredit = gameState.credit; // Store credit before transaction
+
+                if (gameState.energyCore >= quantity) {
+                    gameState.energyCore -= quantity;
+                    gameState.credit += revenue;
+                    // Check for QE gain/loss on trade
+                    checkQETradeEffect('sell', 'energyCore', quantity, revenue, oldCredit); // Pass oldCredit
+                    updateUI();
+                    saveGame();
+                } else {
+                    showModal(`Tidak ada ${quantity} Inti Energi yang cukup untuk dijual.`); // Show modal
+                }
+            });
+        });
+
+        // Perform Quantum Analysis Action
+        performQuantumAnalysisBtn.addEventListener('click', () => {
+            const cost = gameState.quantumAnalysisCost;
+            if (gameState.credit >= cost) {
+                gameState.credit -= cost;
+                let message = "Analisis Kuantum dilakukan, tetapi tidak menemukan peluang QE saat ini.";
+                let qeGained = 0;
+
+                if (Math.random() < gameState.quantumAnalysisSuccessChance) {
+                    qeGained = gameState.quantumAnalysisQEGainMin + Math.random() * (gameState.quantumAnalysisQEGainMax - gameState.quantumAnalysisQEGainMin);
+                    qeGained *= (1 + gameState.permQEGainBonus / 100); // Apply permanent QE gain bonus
+                    gameState.quantumEssence += qeGained;
+                    message = `Analisis Kuantum berhasil! Anda mendapatkan ${formatNumber(qeGained.toFixed(2))} Esensi Kuantum.`;
+                }
+
+                showModal(message);
+                updateUI();
+                saveGame();
+            } else {
+                showModal(`Kredit tidak cukup untuk melakukan Analisis Kuantum. Perlu ${formatNumber(cost)} Kredit.`);
+            }
+        });
+
+
+        // --- QE Trade Effect Logic ---
+        // Added oldCredit parameter to calculate percentage change
+        function checkQETradeEffect(action, resourceType, quantity, transactionValue, oldCredit) {
+            try {
+                const newCredit = gameState.credit;
+                const creditChange = newCredit - oldCredit;
+
+                // Prevent division by zero or very small numbers if oldCredit was 0 or negative
+                const percentageChange = (oldCredit > 0) ? creditChange / oldCredit : (creditChange > 0 ? 1 : (creditChange < 0 ? -1 : 0));
+
+
+                // --- Extreme Gain Logic (Only triggered on significant credit increase) ---
+                if (creditChange > 0 && percentageChange >= gameState.extremeGainThreshold) {
+                    let qeGained = percentageChange * gameState.extremeGainMultiplier;
+
+                    // Apply temporary Market Insight (QE) bonus
+                    if (gameState.tempQEMDuration > 0) {
+                        qeGained += qeGained * (gameState.tempQEMLevel * gameState.tempQEMGainMultiplierBonus);
+                    }
+
+                    qeGained *= (1 + gameState.permQEGainBonus / 100); // Apply permanent QE gain bonus
+
+                    gameState.quantumEssence += qeGained;
+                    showModal(`Profit besar! Anda mendapatkan ${formatNumber(qeGained.toFixed(2))} Esensi Kuantum!`);
+                    // console.log(`Extreme Gain! Gained ${qeGained.toFixed(2)} QE from ${action} of ${quantity} ${resourceType}. Credit change: ${percentageChange.toFixed(2)}%`);
+
+                }
+                // --- Extreme Loss Logic (Triggered on significant credit decrease) ---
+                else if (creditChange < 0 && percentageChange <= -gameState.extremeLossThreshold) {
+                    let qeLostPercentage = Math.abs(percentageChange) * gameState.extremeLossMultiplier;
+                    // Cap the percentage loss to prevent losing all QE instantly
+                    if (qeLostPercentage > gameState.extremeLossCap) {
+                        qeLostPercentage = gameState.extremeLossCap;
+                    }
+
+                    let qeLost = gameState.quantumEssence * qeLostPercentage;
+
+                    // Reduce QE loss by permanent decay reduction bonus (applied to the loss amount)
+                    qeLost *= (1 - gameState.permQEDecayReductBonus / 100);
+
+                    // Temporary Quantum Stabilizer does NOT affect extreme loss from trades, only low-credit decay
+
+
+                    gameState.quantumEssence -= qeLost;
+                    if (gameState.quantumEssence < 0) gameState.quantumEssence = 0; // QE doesn't go below zero
+
+                    showModal(`Kerugian besar! Esensi Kuantum Anda anjlok sebesar ${formatNumber(qeLost.toFixed(2))}!`);
+                    // console.log(`Extreme Loss! Lost ${qeLost.toFixed(2)} QE from ${action} of ${quantity} ${resourceType}. Credit change: ${percentageChange.toFixed(2)}%`);
+
+                }
+                // --- Normal Gain/Loss Logic (No QE effect on normal trades as per new requirement) ---
+                // The previous logic for small chance gain/loss on normal trades is removed.
+                // QE gain is now only from extreme profit or Quantum Analysis.
+                // QE loss is from base decay, low-credit decay, or extreme loss trades.
+
+
+                // Update high score based on current QE if it's higher after trade effect
+                if (gameState.quantumEssence > gameState.highScore) {
+                    gameState.highScore = gameState.quantumEssence;
+                }
+            } catch (error) {
+                console.error("Error during QE trade effect:", error);
+            }
+        }
+
+
+        // --- Upgrade Logic ---
+        upgradeAutoProdBtn.addEventListener('click', () => {
+            const cost = calculateUpgradeCost(gameState.autoProdCost);
+            if (gameState.credit >= cost) {
+                gameState.credit -= cost;
+                gameState.autoProdLevel += 1;
+                // Recalculate speed based on new level and permanent bonus
+                gameState.autoProdSpeed = gameState.autoProdLevel * (0.1 + (gameState.permProdBonus / 10)) + gameState.permProdBonus;
+                gameState.autoProdCost = Math.floor(gameState.autoProdCost * 1.5); // Cost increases
+                updateUI();
+                saveGame();
+            } else {
+                showModal('Kredit tidak cukup untuk upgrade.');
+            }
+        });
+
+        upgradeAutoTradeBtn.addEventListener('click', () => {
+            const cost = calculateUpgradeCost(gameState.autoTradeCost);
+            if (gameState.credit >= cost) {
+                gameState.credit -= cost;
+                gameState.autoTradeLevel += 1;
+                gameState.autoTradeEfficiency = Math.min(100, gameState.autoTradeEfficiency + 5); // Efficiency increases, max 100%
+                gameState.autoTradeCost = Math.floor(gameState.autoTradeCost * 1.8); // Cost increases significantly
+                updateUI();
+                saveGame();
+            } else {
+                showModal('Kredit tidak cukup untuk upgrade.');
+            }
+        });
+
+        upgradeUnlockEnergyCoreBtn.addEventListener('click', () => {
+            const cost = calculateUpgradeCost(gameState.unlockEnergyCoreCost);
+            if (gameState.credit >= cost && !gameState.energyCoreUnlocked) {
+                gameState.credit -= cost;
+                gameState.energyCoreUnlocked = true;
+                // Initialize energy core history on unlock
+                for (let i = 0; i < gameState.maxPriceHistory; i++) {
+                    gameState.energyCorePriceHistory.push(gameState.energyCorePrice);
+                }
+                drawChart(energyCorePriceChartCtx, gameState.energyCorePriceHistory, '#f6ad55'); // Draw initial chart
+                showModal('Perdagangan Inti Energi Terbuka!');
+                updateUI();
+                saveGame();
+            } else if (gameState.energyCoreUnlocked) {
+                showModal('Perdagangan Inti Energi sudah terbuka.');
+            } else {
+                showModal('Kredit tidak cukup untuk membuka Perdagangan Inti Energi.');
+            }
+        });
+
+        upgradeAutoProdEnergyBtn.addEventListener('click', () => {
+            const cost = calculateUpgradeCost(gameState.autoProdEnergyCost);
+            if (gameState.credit >= cost) {
+                gameState.credit -= cost;
+                gameState.autoProdEnergyLevel += 1;
+                // Recalculate speed based on new level and permanent bonus
+                gameState.autoProdEnergySpeed = gameState.autoProdEnergyLevel * (0.5 + (gameState.permEnergyProdBonus / 5)) + gameState.permEnergyProdBonus;
+                gameState.autoProdEnergyCost = Math.floor(gameState.autoProdEnergyCost * 1.6); // Cost increases
+                updateUI();
+                saveGame();
+            } else {
+                showModal('Kredit tidak cukup untuk upgrade.');
+            }
+        });
+
+        // Upgrade QE Stability (Permanent Credit based)
+        upgradeQEStabilityBtn.addEventListener('click', () => {
+            const cost = calculateUpgradeCost(gameState.qeStabilityCost);
+            if (gameState.credit >= cost) {
+                gameState.credit -= cost;
+                gameState.qeStabilityLevel += 1;
+                gameState.qeStabilityReduction = Math.min(90, gameState.qeStabilityReduction + 5); // Reduce low credit decay multiplier by 5%, max 90%
+                gameState.qeStabilityCost = Math.floor(gameState.qeStabilityCost * 1.7); // Cost increases significantly
+                showModal(`Penguat Stabilitas Kuantum Level ${gameState.qeStabilityLevel} di-upgrade! Pengurangan Decay Rendah Kredit: ${gameState.qeStabilityReduction}%`);
+                updateUI();
+                saveGame();
+            } else {
+                showModal('Kredit tidak cukup untuk upgrade Penguat Stabilitas Kuantum.');
+            }
+        });
+
+        // --- Temporary Upgrade Logic (Credit based, Timed) ---
+
+        // Buy Temporary Quantum Stabilizer
+        buyTempQESBtn.addEventListener('click', () => {
+            if (gameState.tempQESLevel < gameState.tempQESMaxLevel) {
+                const cost = gameState.tempQESCost; // Temporary upgrades don't use calculateUpgradeCost with perm reduction
+                if (gameState.credit >= cost) {
+                    gameState.credit -= cost;
+                    gameState.tempQESLevel += 1;
+                    // Add duration based on level
+                    gameState.tempQESDuration += gameState.tempQESBaseDuration + (gameState.tempQESLevel - 1) * 5; // Example: +5s per level
+                    gameState.tempQESCost = Math.floor(gameState.tempQESCost * 1.5); // Cost increases
+                    showModal(`Stabilisator Kuantum Sementara Level ${gameState.tempQESLevel} diaktifkan! Berlangsung selama ${gameState.tempQESDuration.toFixed(0)} detik.`);
+                    updateUI();
+                    saveGame();
+                } else {
+                    showModal(`Kredit tidak cukup untuk membeli Stabilisator Kuantum Sementara. Perlu ${formatNumber(cost)} Kredit.`);
+                }
+            } else {
+                showModal(`Stabilisator Kuantum Sementara sudah mencapai level maksimum (${gameState.tempQESMaxLevel}).`);
+            }
+        });
+
+        // Buy Temporary Essence Harvester
+        buyTempQEHBtn.addEventListener('click', () => {
+            if (gameState.tempQEHLevel < gameState.tempQEHMaxLevel) {
+                const cost = gameState.tempQEHCost;
+                if (gameState.credit >= cost) {
+                    gameState.credit -= cost;
+                    gameState.tempQEHLevel += 1;
+                    // Add duration based on level
+                    gameState.tempQEHDuration += gameState.tempQEHBaseDuration + (gameState.tempQEHLevel - 1) * 7; // Example: +7s per level
+                    gameState.tempQEHCost = Math.floor(gameState.tempQEHCost * 1.6); // Cost increases
+                    showModal(`Pemanen Esensi Sementara Level ${gameState.tempQEHLevel} diaktifkan! Berlangsung selama ${gameState.tempQEHDuration.toFixed(0)} detik.`);
+                    updateUI();
+                    saveGame();
+                } else {
+                    showModal(`Kredit tidak cukup untuk membeli Pemanen Esensi Sementara. Perlu ${formatNumber(cost)} Kredit.`);
+                }
+            } else {
+                showModal(`Pemanen Esensi Sementara sudah mencapai level maksimum (${gameState.tempQEHMaxLevel}).`);
+            }
+        });
+
+        // Buy Temporary Market Insight (QE)
+        buyTempQEMBtn.addEventListener('click', () => {
+            if (gameState.tempQEMLevel < gameState.tempQEMMaxLevel) {
+                const cost = gameState.tempQEMCost;
+                if (gameState.credit >= cost) {
+                    gameState.credit -= cost;
+                    gameState.tempQEMLevel += 1;
+                    // Add duration based on level
+                    gameState.tempQEMDuration += gameState.tempQEMBaseDuration + (gameState.tempQEMLevel - 1) * 10; // Example: +10s per level
+                    gameState.tempQEMCost = Math.floor(gameState.tempQEMCost * 1.8); // Cost increases
+                    showModal(`Wawasan Pasar Kuantum Sementara Level ${gameState.tempQEMLevel} diaktifkan! Berlangsung selama ${gameState.tempQEMDuration.toFixed(0)} detik.`);
+                    updateUI();
+                    saveGame();
+                } else {
+                    showModal(`Kredit tidak cukup untuk membeli Wawasan Pasar Kuantum Sementara. Perlu ${formatNumber(cost)} Kredit.`);
+                }
+            } else {
+                showModal(`Wawasan Pasar Kuantum Sementara sudah mencapai level maksimum (${gameState.tempQEMMaxLevel}).`);
+            }
+        });
+
+
+        // --- Permanent Upgrade Logic (QE based) ---
+        upgradePermProdBtn.addEventListener('click', () => {
+            if (gameState.quantumEssence >= gameState.permProdCost) {
+                gameState.quantumEssence -= gameState.permProdCost;
+                gameState.permProdLevel += 1;
+                gameState.permProdBonus += 0.05; // Permanent bonus increases
+                gameState.permProdCost = Math.floor(gameState.permProdCost * 1.2); // Cost increases
+                // Apply bonus immediately to current speed calculation
+                gameState.autoProdSpeed = gameState.autoProdLevel * (0.1 + (gameState.permProdBonus / 10)) + gameState.permProdBonus;
+
+                updateUI();
+                saveGame();
+            } else {
+                showModal('Esensi Kuantum tidak cukup untuk upgrade permanen.');
+            }
+        });
+
+        upgradePermEnergyProdBtn.addEventListener('click', () => {
+            if (gameState.quantumEssence >= gameState.permEnergyProdCost) {
+                gameState.quantumEssence -= gameState.permEnergyProdCost;
+                gameState.permEnergyProdLevel += 1;
+                gameState.permEnergyProdBonus += 0.1; // Permanent bonus increases for Energy Core
+                gameState.permEnergyProdCost = Math.floor(gameState.permEnergyProdCost * 1.3); // Cost increases
+                // Apply bonus immediately to current speed calculation
+                gameState.autoProdEnergySpeed = gameState.autoProdEnergyLevel * (0.5 + (gameState.permEnergyProdBonus / 5)) + gameState.permEnergyProdBonus;
+
+                updateUI();
+                saveGame();
+            } else {
+                showModal('Esensi Kuantum tidak cukup untuk upgrade permanen.');
+            }
+        });
+
+        upgradePermTradeEffBtn.addEventListener('click', () => {
+            if (gameState.quantumEssence >= gameState.permTradeEffCost) {
+                gameState.quantumEssence -= gameState.permTradeEffCost;
+                gameState.permTradeEffLevel += 1;
+                gameState.permTradeEffBonus += 1; // Permanent efficiency bonus increases by 1%
+                gameState.permTradeEffCost = Math.floor(gameState.permTradeEffCost * 1.4); // Cost increases
+                // Note: autoTradeEfficiency displayed value is updated in updateUI
+                updateUI();
+                saveGame();
+            } else {
+                showModal('Esensi Kuantum tidak cukup untuk upgrade permanen.');
+            }
+        });
+
+        upgradePermCostReductBtn.addEventListener('click', () => {
+            if (gameState.quantumEssence >= gameState.permCostReductCost) {
+                gameState.quantumEssence -= gameState.permCostReductCost;
+                gameState.permCostReductLevel += 1;
+                gameState.permCostReductBonus = Math.min(50, gameState.permCostReductBonus + 1); // Max 50% reduction
+                gameState.permCostReductCost = Math.floor(gameState.permCostReductCost * 1.5); // Cost increases
+                updateUI();
+                saveGame();
+            } else {
+                showModal('Esensi Kuantum tidak cukup untuk upgrade permanen.');
+            }
+        });
+
+        // Upgrade Permanent QE Gain
+        upgradePermQEGainBtn.addEventListener('click', () => {
+            if (gameState.quantumEssence >= gameState.permQEGainCost) {
+                gameState.quantumEssence -= gameState.permQEGainCost;
+                gameState.permQEGainLevel += 1;
+                gameState.permQEGainBonus += 5; // Increase QE gain bonus by 5%
+                // Use the specific multiplier for this upgrade
+                gameState.permQEGainCost = Math.floor(gameState.permQEGainCost * gameState.permQEGainCostMultiplier); // Cost increases
+                updateUI();
+                saveGame();
+            } else {
+                showModal('Esensi Kuantum tidak cukup untuk upgrade permanen.');
+            }
+        });
+
+        // Upgrade Permanent QE Decay Reduction
+        upgradePermQEDecayReductBtn.addEventListener('click', () => {
+            if (gameState.quantumEssence >= gameState.permQEDecayReductCost) {
+                gameState.quantumEssence -= gameState.permQEDecayReductCost;
+                gameState.permQEDecayReductLevel += 1;
+                gameState.permQEDecayReductBonus = Math.min(90, gameState.permQEDecayReductBonus + 2); // Reduce decay by 2%, max 90%
+                // Use the specific multiplier for this upgrade
+                gameState.permQEDecayReductCost = Math.floor(gameState.permQEDecayReductCost * gameState.permQEDecayReductCostMultiplier); // Cost increases
+                updateUI();
+                saveGame();
+            } else {
+                showModal('Esensi Kuantum tidak cukup untuk upgrade permanen.');
+            }
+        });
+
+
+        // --- Idle Production & Passive QE & QE Decay & Temporary Upgrade Timers ---
+        function gameTickUpdate() {
+            try {
+                // Idle Production
+                gameState.dataUnit += gameState.autoProdSpeed * (gameState.gameTick / 1000);
+                if (gameState.energyCoreUnlocked) {
+                    gameState.energyCore += gameState.autoProdEnergySpeed * (gameState.gameTick / 1000);
+                }
+
+                // Passive QE Gain
+                const passiveQEGained = calculatePassiveQEGain() * (gameState.gameTick / 1000); // Gain per tick based on rate per second
+                gameState.quantumEssence += passiveQEGained;
+
+                // QE Decay (affected by credit level, stability upgrade, and temporary stabilizer)
+                const qeDecayed = calculateActualQEDecayRate() * (gameState.gameTick / 1000); // Decay per tick based on rate per second
+                gameState.quantumEssence -= qeDecayed;
+
+                // QE Decay from Consumer Market
+                const consumerMarketDecayed = calculateConsumerMarketDecayRate() * (gameState.gameTick / 1000);
+                gameState.quantumEssence -= consumerMarketDecayed;
+
+
+                if (gameState.quantumEssence < 0) gameState.quantumEssence = 0; // QE doesn't go below zero
+
+
+                // Update high score based on current QE if it's higher
+                if (gameState.quantumEssence > gameState.highScore) {
+                    gameState.highScore = gameState.quantumEssence;
+                }
+
+                // --- Update Temporary Upgrade Timers ---
+                const timeElapsed = gameState.gameTick / 1000; // Time in seconds since last tick
+
+                if (gameState.tempQESDuration > 0) {
+                    gameState.tempQESDuration -= timeElapsed;
+                    if (gameState.tempQESDuration <= 0) {
+                        gameState.tempQESDuration = 0;
+                        gameState.tempQESLevel = 0; // Reset level when duration ends
+                        showModal("Stabilisator Kuantum Sementara telah kedaluwarsa.");
+                    }
+                }
+
+                if (gameState.tempQEHDuration > 0) {
+                    gameState.tempQEHDuration -= timeElapsed;
+                    if (gameState.tempQEHDuration <= 0) {
+                        gameState.tempQEHDuration = 0;
+                        gameState.tempQEHLevel = 0; // Reset level when duration ends
+                        showModal("Pemanen Esensi Sementara telah kedaluwarsa.");
+                    }
+                }
+
+                if (gameState.tempQEMDuration > 0) {
+                    gameState.tempQEMDuration -= timeElapsed;
+                    if (gameState.tempQEMDuration <= 0) {
+                        gameState.tempQEMDuration = 0;
+                        gameState.tempQEMLevel = 0; // Reset level when duration ends
+                        showModal("Wawasan Pasar Kuantum Sementara telah kedaluwarsa.");
+                    }
+                }
+
+
+                updateUI(); // Update UI after all calculations
+            } catch (error) {
+                console.error("Error during game tick update:", error);
+            }
+        }
+
+        // --- Auto Trading Bot ---
+        function autoTrade() {
+            try {
+                // Add permanent efficiency bonus to bot's effective efficiency
+                const effectiveTradeEfficiency = gameState.autoTradeEfficiency + gameState.permTradeEffBonus;
+
+                if (gameState.autoTradeLevel > 0 && Math.random() * 100 < effectiveTradeEfficiency) {
+                    // Simple Auto-Trade Logic for Data Unit
+                    const dataBuyThreshold = gameState.dataUnitPrice * (1 - (0.05 * gameState.autoTradeLevel));
+                    const dataSellThreshold = gameState.dataUnitPrice * (1 + (0.05 * gameState.autoTradeLevel));
+
+                    if (gameState.dataUnitPrice < dataBuyThreshold) {
+                        const volumeToBuy = Math.min(Math.floor(gameState.credit / gameState.dataUnitPrice), 5 * gameState.autoTradeLevel);
+                        if (volumeToBuy > 0) {
+                            const cost = volumeToBuy * gameState.dataUnitPrice;
+                            gameState.credit -= cost;
+                            gameState.dataUnit += volumeToBuy;
+                            // console.log(`Bot Beli ${formatNumber(volumeToBuy)} Unit Data}`);
+                            // No QE effect for bot trades to keep player actions impactful
+                            updateUI();
+                        }
+                    } else if (gameState.dataUnitPrice > dataSellThreshold) {
+                        const volumeToSell = Math.min(gameState.dataUnit, 5 * gameState.autoTradeLevel);
+                        if (volumeToSell > 0) {
+                            const revenue = volumeToSell * gameState.dataUnitPrice;
+                            gameState.dataUnit -= volumeToSell;
+                            gameState.credit += revenue;
+                            // console.log(`Bot Jual ${formatNumber(volumeToSell)} Unit Data}`);
+                            // No QE effect for bot trades
+                            updateUI();
+                        }
+                    }
+                }
+
+                // Simple Auto-Trade Logic for Energy Core (if unlocked)
+                if (gameState.energyCoreUnlocked) {
+                    const energyBuyThreshold = gameState.energyCorePrice * (1 - (0.08 * gameState.autoTradeLevel)); // Higher threshold due to higher volatility
+                    const energySellThreshold = gameState.energyCorePrice * (1 + (0.08 * gameState.autoTradeLevel)); // Higher threshold
+
+                    if (gameState.energyCorePrice < energyBuyThreshold) {
+                        const volumeToBuy = Math.min(Math.floor(gameState.credit / gameState.energyCorePrice), 2 * gameState.autoTradeLevel); // Lower volume
+                        if (volumeToBuy > 0) {
+                            const cost = volumeToBuy * gameState.energyCorePrice;
+                            gameState.credit -= cost;
+                            gameState.energyCore += volumeToBuy;
+                            // console.log(`Bot Beli ${formatNumber(volumeToBuy)} Inti Energi}`);
+                            // No QE effect for bot trades
+                            updateUI();
+                        }
+                    } else if (gameState.energyCorePrice > energySellThreshold) {
+                        const volumeToSell = Math.min(gameState.energyCore, 2 * gameState.autoTradeLevel); // Lower volume
+                        if (volumeToSell > 0) {
+                            const revenue = volumeToSell * gameState.energyCorePrice;
+                            gameState.energyCore -= volumeToSell;
+                            gameState.credit += revenue;
+                            // console.log(`Bot Jual ${formatNumber(volumeToSell)} Inti Energi}`);
+                            // No QE effect for bot trades
+                            updateUI();
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Error during auto trade:", error);
+            }
+        }
+
+
+        // --- Prestige Logic ---
+        prestigeButton.addEventListener('click', () => {
+            try {
+                if (gameState.credit >= gameState.prestigeRequirement) {
+                    const quantumEssenceGained = Math.floor(gameState.credit / 1000); // Calculate QE gain
+                    gameState.quantumEssence += quantumEssenceGained;
+
+                    // Update High Score
+                    if (gameState.quantumEssence > gameState.highScore) {
+                        gameState.highScore = gameState.quantumEssence;
+                    }
+
+                    // Reset most game state
+                    gameState.credit = 100; // Start with initial credit again
+                    gameState.dataUnit = 0;
+                    gameState.dataUnitPrice = 10;
+                    gameState.lastDataUnitPrice = 10;
+                    gameState.dataPriceHistory = []; // Clear history on prestige
+                    for (let i = 0; i < gameState.maxPriceHistory; i++) { // Re-initialize history
+                        gameState.dataPriceHistory.push(gameState.dataUnitPrice);
+                    }
+
+
+                    gameState.energyCore = 0;
+                    gameState.energyCorePrice = 50;
+                    gameState.lastEnergyCorePrice = 50;
+                    // energyCoreUnlocked remains true if already unlocked
+                    if (gameState.energyCoreUnlocked) {
+                        gameState.energyCorePriceHistory = []; // Clear history on prestige
+                        for (let i = 0; i < gameState.maxPriceHistory; i++) { // Re-initialize history
+                            gameState.energyCorePriceHistory.push(gameState.energyCorePrice);
+                        }
+                    }
+
+                    // Consumer Market Index is NOT reset on prestige
+                    // gameState.consumerMarketIndex = 100;
+                    // gameState.lastConsumerMarketIndex = 100;
+                    // gameState.consumerMarketHistory = []; // History is NOT reset
+
+
+                    gameState.autoProdLevel = 0;
+                    gameState.autoProdCost = 100;
+                    // autoProdSpeed is reset and then immediately gets the permanent bonus applied below
+
+                    gameState.autoProdEnergyLevel = 0;
+                    gameState.autoProdEnergyCost = 2000;
+                    // autoProdEnergySpeed is reset and then gets permanent bonus
+
+                    gameState.autoTradeLevel = 0;
+                    gameState.autoTradeCost = 500;
+                    gameState.autoTradeEfficiency = 0;
+
+                    gameState.unlockEnergyCoreCost = 5000; // Reset unlock cost
+
+                    // QE Stability upgrade level is NOT reset on prestige (it's a regular upgrade)
+                    // gameState.qeStabilityLevel = 0;
+                    // gameState.qeStabilityCost = 500;
+                    // gameState.qeStabilityReduction = 0;
+
+                    // Temporary upgrades are NOT reset on prestige (they are temporary anyway)
+                    // gameState.tempQESLevel = 0;
+                    // gameState.tempQESDuration = 0;
+                    // gameState.tempQEHLevel = 0;
+                    // gameState.tempQEHDuration = 0;
+                    // gameState.tempQEMLevel = 0;
+                    // gameState.tempQEMDuration = 0;
+
+
+                    // Apply permanent bonuses after reset
+                    gameState.autoProdSpeed = gameState.permProdBonus;
+                    gameState.autoProdEnergySpeed = gameState.permEnergyProdBonus;
+
+
+                    showModal(`Prestise Berhasil! Anda mendapatkan ${formatNumber(quantumEssenceGained)} Esensi Kuantum.`); // Use modal instead of alert
+
+                    updateUI();
+                    saveGame(); // Save after prestige
+                    // Redraw charts after reset
+                    drawChart(dataPriceChartCtx, gameState.dataPriceHistory, '#4299e1');
+                    if (gameState.energyCoreUnlocked) {
+                        drawChart(energyCorePriceChartCtx, gameState.energyCorePriceHistory, '#f6ad55');
+                    }
+                    // Redraw consumer market chart (history not reset)
+                    drawChart(consumerMarketChartCtx, gameState.consumerMarketHistory, '#667eea');
+                } else {
+                    showModal(`Kredit tidak cukup untuk melakukan Prestise. Perlu ${formatNumber(gameState.prestigeRequirement)} Kredit.`);
+                }
+            } catch (error) {
+                console.error("Error during prestige:", error);
+            }
+        });
+
+        // --- Name Change Logic ---
+        changeNameButton.addEventListener('click', () => {
+            try {
+                const newName = playerNameInput.value.trim();
+                if (newName === "") {
+                    showModal("Nama tidak boleh kosong.");
+                    return;
+                }
+
+                let cost = 0;
+                if (gameState.freeNameChanges > 0) {
+                    gameState.freeNameChanges -= 1;
+                    showModal(`Nama berhasil diubah menjadi "${newName}". Anda memiliki ${gameState.freeNameChanges} kesempatan gratis tersisa.`);
+                } else {
+                    cost = gameState.nameChangeCost;
+                    if (gameState.credit >= cost) {
+                        gameState.credit -= cost;
+                        // Increase cost for next time (optional, but common in games)
+                        gameState.nameChangeCost = Math.floor(gameState.nameChangeCost * 2);
+                        showModal(`Nama berhasil diubah menjadi "${newName}". Biaya ${formatNumber(cost)} Kredit.`);
+                    } else {
+                        showModal(`Kredit tidak cukup untuk mengganti nama. Perlu ${formatNumber(cost)} Kredit.`);
+                        return; // Stop if not enough credit
+                    }
+                }
+
+                gameState.playerName = newName;
+                playerNameInput.value = ""; // Clear input field
+                updateUI();
+                saveGame();
+            } catch (error) {
+                console.error("Error during name change:", error);
+            }
+        });
+
+        // --- Donation Link Logic ---
+        // Function to set the donation link dynamically
+        function setDonationLink() {
+            const linkElement = document.getElementById('danaDonationLink');
+            if (linkElement) {
+                linkElement.href = gameState.danaDonationLink;
+                // Optional: Add a simple check when clicked (easily bypassed, but adds a layer)
+                linkElement.addEventListener('click', (event) => {
+                    if (linkElement.href !== gameState.danaDonationLink) {
+                        console.warn("Potensi tampering terdeteksi: Tautan donasi telah diubah.");
+                        // Optionally, prevent the default action and show a message
+                        // event.preventDefault();
+                        // showModal("Tautan donasi mungkin telah diubah. Harap berhati-hati.");
+                    }
+                });
+            }
+        }
+
+
+        // --- Game Loops ---
+        // Main game tick update (production, passive QE, QE Decay, Temporary Upgrade Timers)
+        setInterval(gameTickUpdate, gameState.gameTick); // Runs based on gameTick (e.g., 10 times per second if gameTick is 100ms)
+
+        // Market update loop
+        setInterval(updateMarket, gameState.gameTick * 10); // Market updates less frequently
+
+        // Auto trade bot loop (runs less frequently)
+        setInterval(autoTrade, gameState.gameTick * 20); // Bot trades every 2 seconds (if gameTick is 100ms)
+
+        // AI Bot update loop
+        setInterval(updateAIBots, gameState.aiUpdateInterval); // Update AI bots periodically
+
+        // Consumer Market update loop
+        setInterval(updateConsumerMarket, gameState.consumerMarketUpdateInterval); // Update Consumer Market periodically
+
+        // Save game periodically
+        setInterval(saveGame, 15000); // Save every 15 seconds
+
+
+        // --- Initialize Game ---
+        window.onload = () => {
+            try {
+                console.log("Window loaded. Starting game initialization."); // Log start
+
+                // Set game title and welcome message
+                gameTitleEl.textContent = gameTitle;
+                gameTitleOverlayEl.textContent = gameTitle;
+                welcomeMessageEl.textContent = `Selamat datang di ${gameTitle}`;
+                console.log("Title and welcome message set."); // Log step
+
+                // Set canvas dimensions based on display size (for responsiveness)
+                // Use requestAnimationFrame to ensure elements are rendered before getting offset dimensions
+                requestAnimationFrame(() => {
+                    try {
+                        dataPriceChartCanvas.width = dataPriceChartCanvas.offsetWidth;
+                        dataPriceChartCanvas.height = dataPriceChartCanvas.offsetHeight;
+                        energyCorePriceChartCanvas.width = energyCorePriceChartCanvas.offsetWidth;
+                        energyCorePriceChartCanvas.height = energyCorePriceChartCanvas.offsetHeight;
+                        consumerMarketChartCanvas.width = consumerMarketChartCanvas.offsetWidth; // Set consumer market chart width
+                        consumerMarketChartCanvas.height = consumerMarketChartCanvas.offsetHeight; // Set consumer market chart height
+                        console.log("Canvas dimensions set."); // Log step
+
+                        loadGame(); // Load game state on page load
+                        console.log("Game state loaded."); // Log step
+
+                        // Initial calculation of autoProdSpeed based on loaded permanent bonus
+                        gameState.autoProdSpeed = gameState.autoProdLevel * (0.1 + (gameState.permProdBonus / 10)) + gameState.permProdBonus;
+                        gameState.autoProdEnergySpeed = gameState.autoProdEnergyLevel * (0.5 + (gameState.permEnergyProdBonus / 5)) + gameState.permEnergyProdBonus;
+                        console.log("Auto production speeds calculated."); // Log step
+
+                        // Initial calculation of QE Stability reduction (Permanent)
+                        gameState.qeStabilityReduction = gameState.qeStabilityLevel * 5; // 5% reduction per level
+                        console.log("QE Stability reduction calculated."); // Log step
+
+
+                        // Ensure temporary upgrade costs and durations are calculated based on loaded levels
+                        gameState.tempQESCost = 1000 * Math.pow(1.5, gameState.tempQESLevel); // Recalculate cost based on level
+                        gameState.tempQEHCost = 1500 * Math.pow(1.6, gameState.tempQEHLevel);
+                        gameState.tempQEMCost = 3000 * Math.pow(1.8, gameState.tempQEMLevel);
+                        console.log("Temporary upgrade costs calculated."); // Log step
+
+
+                        // Ensure price history is populated if empty (e.g., first load)
+                        if (gameState.dataPriceHistory.length === 0) {
+                            for (let i = 0; i < gameState.maxPriceHistory; i++) {
+                                gameState.dataPriceHistory.push(gameState.dataUnitPrice);
+                            }
+                        }
+                        if (gameState.energyCorePriceHistory.length === 0 && gameState.energyCoreUnlocked) {
+                            for (let i = 0; i < gameState.maxPriceHistory; i++) {
+                                gameState.energyCorePriceHistory.push(gameState.energyCorePrice);
+                            }
+                        }
+                        // Ensure consumer market history is populated if empty
+                        if (gameState.consumerMarketHistory.length === 0) {
+                            for (let i = 0; i < gameState.maxPriceHistory; i++) {
+                                gameState.consumerMarketHistory.push(gameState.consumerMarketIndex);
+                            }
+                        }
+                        console.log("Price history checked/initialized."); // Log step
+
+
+                        updateUI(); // Initial UI update
+                        console.log("Initial UI update complete."); // Log step
+
+                        // Hide loading overlay after a delay
+                        setTimeout(() => {
+                            loadingOverlayEl.classList.add('hidden');
+                            console.log("Loading overlay hidden."); // Log step
+                        }, 1500); // Hide after 1.5 seconds
+
+                        // Redraw charts after load and initial UI update
+                        drawChart(dataPriceChartCtx, gameState.dataPriceHistory, '#4299e1');
+                        if (gameState.energyCoreUnlocked) {
+                            drawChart(energyCorePriceChartCtx, gameState.energyCorePriceHistory, '#f6ad55');
+                        }
+                        drawChart(consumerMarketChartCtx, gameState.consumerMarketHistory, '#667eea'); // Draw consumer market chart
+                        console.log("Charts drawn."); // Log step
+
+                    } catch (error) {
+                        console.error("Error inside requestAnimationFrame:", error); // Log errors within rAF
+                        // Ensure loading overlay is hidden even if there's an error here
+                        loadingOverlayEl.classList.add('hidden');
+                        showModal("Terjadi error saat memuat game. Silakan cek console browser untuk detail.");
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error during window.onload initialization:", error); // Log errors during initial load
+                // Ensure loading overlay is hidden even if there's an error
+                loadingOverlayEl.classList.add('hidden');
+                showModal("Terjadi error saat memuat game. Silakan cek console browser untuk detail.");
+            }
+        };
+
+        // Ensure charts redraw if window is resized
+        window.addEventListener('resize', () => {
+            requestAnimationFrame(() => { // Use requestAnimationFrame for resize
+                dataPriceChartCanvas.width = dataPriceChartCanvas.offsetWidth;
+                dataPriceChartCanvas.height = dataPriceChartCanvas.offsetHeight;
+                energyCorePriceChartCanvas.width = energyCorePriceChartCanvas.offsetWidth;
+                energyCorePriceChartCanvas.height = energyCorePriceChartCanvas.offsetHeight;
+                consumerMarketChartCanvas.width = consumerMarketChartCanvas.offsetWidth; // Resize consumer market chart
+                consumerMarketChartCanvas.height = consumerMarketChartCanvas.offsetHeight; // Resize consumer market chart
+                drawChart(dataPriceChartCtx, gameState.dataPriceHistory, '#4299e1');
+                if (gameState.energyCoreUnlocked) {
+                    drawChart(energyCorePriceChartCtx, gameState.energyCorePriceHistory, '#f6ad55');
+                }
+                drawChart(consumerMarketChartCtx, gameState.consumerMarketHistory, '#667eea'); // Redraw consumer market chart
+            });
+        });
+    </script>
+</body>
+
+</html>
